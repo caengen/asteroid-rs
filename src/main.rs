@@ -107,34 +107,6 @@ fn update(gs: &mut GameState) {
     }
 }
 
-fn rotate(point: Vec2, angle: &f32, origin: &Vec2) -> Vec2 {
-    let rotation = angle.to_radians();
-    let cos = rotation.cos();
-    let sin = rotation.sin();
-    let mut p = point;
-    p.x -= origin.x;
-    p.y -= origin.y;
-    let new_x = p.x * cos - p.y * sin;
-    let new_y = p.x * sin - p.y * cos;
-
-    p.x = new_x + origin.x;
-    p.y = new_y + origin.y;
-
-    p
-}
-
-// let A = vec2(pos.x, pos.y + (h * scl / 2.0));
-// let B = vec2(pos.x - (w * scl / 2.0), pos.y - (h * scl / 2.0));
-// let C = vec2(pos.x + (w * scl / 2.0), pos.y - (h * scl / 2.0));
-// let D = vec2(pos.x - ((w + w / 2.0) * scl / 2.0), pos.y - (h * scl));
-// let E = vec2(pos.x + ((w + w / 2.0) * scl / 2.0), pos.y - (h * scl));
-
-// let centroid = vec2((A.x + D.x + E.x) / 3.0, (A.y - E.y) / 3.0 + E.y);
-// let Ar = rotate(A, angle, &pos);
-// let Br = rotate(B, angle, &pos);
-// let Cr = rotate(C, angle, &pos);
-// let Dr = rotate(D, angle, &pos);
-// let Er = rotate(E, angle, &pos);
 fn draw_spaceship(ship: &Spaceship, scl: f32) {
     let Spaceship {
         pos,
@@ -145,39 +117,28 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
         ..
     } = ship;
 
-    // let pd = 10.0;
-    // let A = rotate(vec2(0.0, pd), angle, &vec2(0.0, 0.0));
-    // let B = rotate(vec2(-pd, -pd), angle, &vec2(0.0, 0.0));
-    // let C = rotate(vec2(pd, -pd), angle, &vec2(0.0, 0.0));
-
     let rotation = (angle).to_radians();
-    let SHIP_HEIGHT = h * scl;
-    let SHIP_BASE = w * scl;
-    // let new_x = p.x * cos - p.y * sin;
-    // let new_y = p.x * sin - p.y * cos;
+    let sh = h * scl; // ship height
+    let sw = w * scl; // ship width
 
     let v1 = Vec2::new(
-        ship.pos.x + rotation.sin() * SHIP_HEIGHT / 2., // hvorfor ikke minus delen her
-        ship.pos.y - rotation.cos() * SHIP_HEIGHT / 2.,
+        ship.pos.x + rotation.sin() * sh / 2.,
+        ship.pos.y - rotation.cos() * sh / 2.,
     );
     let v2 = Vec2::new(
-        ship.pos.x - rotation.cos() * SHIP_BASE / 2. - rotation.sin() * SHIP_HEIGHT / 2.,
-        ship.pos.y - rotation.sin() * SHIP_BASE / 2. + rotation.cos() * SHIP_HEIGHT / 2.,
+        ship.pos.x - rotation.cos() * sw / 2. - rotation.sin() * sh / 2.,
+        ship.pos.y - rotation.sin() * sw / 2. + rotation.cos() * sh / 2.,
     );
     let v3 = Vec2::new(
-        ship.pos.x + rotation.cos() * SHIP_BASE / 2. - rotation.sin() * SHIP_HEIGHT / 2.,
-        ship.pos.y + rotation.sin() * SHIP_BASE / 2. + rotation.cos() * SHIP_HEIGHT / 2.,
+        ship.pos.x + rotation.cos() * sw / 2. - rotation.sin() * sh / 2.,
+        ship.pos.y + rotation.sin() * sw / 2. + rotation.cos() * sh / 2.,
     );
 
     draw_triangle_lines(v1, v2, v3, 1.0, BLACK);
 
-    // draw_line(Br.x, Br.y, Dr.x, Dr.y, 1.0, BLACK);
-    // draw_line(Cr.x, Cr.y, Er.x, Er.y, 1.0, BLACK);
-
     draw_circle(pos.x, pos.y, 0.1 * scl, RED);
 
     draw_line(pos.x, pos.y, pos.x + vel.x, pos.y + vel.y, 1.0, GREEN)
-    // draw_circle(centroid.x, centroid.y, 0.1 * scl, RED)
 }
 
 fn draw(gs: &GameState) {
