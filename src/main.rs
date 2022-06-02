@@ -10,6 +10,7 @@ const ASTEROID_VELOCITY: f32 = 10.0;
 const UNITS: f32 = 16.0;
 const PLAYER_WIDTH: f32 = 1.0;
 const PLAYER_HEIGHT: f32 = 1.0;
+const BULLET_WIDTH: f32 = 4.0;
 const PLAYER_ACCELERATION: f32 = 10.0;
 
 enum RunState {
@@ -25,6 +26,12 @@ struct Asteroid {
     size: i8,
 }
 
+struct Bullet {
+    pos: Vec2,
+    created_at: f32,
+    vel: Vec2,
+}
+
 struct Spaceship {
     w: f32,
     h: f32,
@@ -36,6 +43,7 @@ struct Spaceship {
 struct GameState {
     scl: f32, // scale
     player: Spaceship,
+    bullets: Vec<Bullet>,
     asteroids: Vec<Asteroid>,
     lives: i8,
     run_state: RunState,
@@ -43,6 +51,10 @@ struct GameState {
 
 fn handle_input(gs: &mut GameState) {
     let delta = get_frame_time();
+    let rotation = gs.player.angle.to_radians();
+    let sh = screen_height() * gs.scl; // ship height
+    let sw = screen_width() * gs.scl; // ship width
+
     match gs.run_state {
         RunState::Running => {
             if is_key_down(KeyCode::Left) {
@@ -52,7 +64,6 @@ fn handle_input(gs: &mut GameState) {
                 gs.player.angle = (gs.player.angle + 5.0) % 360.0;
             }
 
-            let rotation = gs.player.angle.to_radians();
             if is_key_down(KeyCode::Up) {
                 gs.player.vel = vec2(
                     gs.player.vel.x + (7.0 * delta) * rotation.sin(),
@@ -65,9 +76,33 @@ fn handle_input(gs: &mut GameState) {
                     gs.player.vel.y + (7.0 * delta) * rotation.cos(),
                 );
             }
+            if is_key_pressed(KeyCode::Space) {
+                gs.bullets.push(Bullet {
+                    pos: vec2(gs.player.pos.x, gs.player.pos.y),
+                    created_at: get_frame_time(),
+                    vel: vec2(100.0 * rotation.sin(), -(100.0 * rotation.cos())),
+                })
+            }
         }
         _ => {}
     }
+}
+
+fn wrap(pos: Vec2, width: f32, height: f32) -> Vec2 {
+    let mut new_pos = pos;
+    if pos.x > screen_width() {
+        new_pos.x = 0.0 - width;
+    } else if new_pos.x < 0.0 - width {
+        new_pos.x = screen_width();
+    }
+
+    if new_pos.y > screen_height() {
+        new_pos.y = 0.0 - height;
+    } else if new_pos.y < 0.0 - height {
+        new_pos.y = screen_height();
+    }
+
+    new_pos
 }
 
 fn update(gs: &mut GameState) {
@@ -90,18 +125,13 @@ fn update(gs: &mut GameState) {
             };
             gs.player.vel = new_vel;
 
-            // handle bounds
-            if gs.player.pos.x > screen_width() {
-                gs.player.pos.x = 0.0 - gs.player.w;
-            } else if gs.player.pos.x < 0.0 - gs.player.w {
-                gs.player.pos.x = screen_width();
+            // update bullets and handle bounds
+            for bullet in gs.bullets.iter_mut() {
+                bullet.pos = wrap(bullet.pos + bullet.vel * delta, BULLET_WIDTH, BULLET_WIDTH);
             }
 
-            if gs.player.pos.y > screen_height() {
-                gs.player.pos.y = 0.0 - gs.player.h;
-            } else if gs.player.pos.y < 0.0 - gs.player.h {
-                gs.player.pos.y = screen_height();
-            }
+            // handle bounds
+            gs.player.pos = wrap(gs.player.pos, gs.player.w, gs.player.h)
         }
         _ => {}
     }
@@ -117,7 +147,7 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
         ..
     } = ship;
 
-    let rotation = (angle).to_radians();
+    let rotation = angle.to_radians();
     let sh = h * scl; // ship height
     let sw = w * scl; // ship width
 
@@ -147,6 +177,11 @@ fn draw(gs: &GameState) {
     match gs.run_state {
         RunState::Running => {
             draw_spaceship(&gs.player, gs.scl);
+
+            for bullet in gs.bullets.iter() {
+                draw_circle(bullet.pos.x, bullet.pos.y, BULLET_WIDTH / 2.0, BLACK)
+            }
+
             draw_text(
                 &format!("{}", gs.player.vel.to_string()),
                 100.0,
@@ -187,6 +222,7 @@ async fn main() {
             };
             6
         ],
+        bullets: Vec::new(),
         lives: 5,
     };
 
