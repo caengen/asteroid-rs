@@ -46,23 +46,23 @@ fn handle_input(gs: &mut GameState) {
     match gs.run_state {
         RunState::Running => {
             if is_key_down(KeyCode::Left) {
-                gs.player.angle -= 5.0;
+                gs.player.angle = -((gs.player.angle - 5.0).abs() % 360.0);
             }
             if is_key_down(KeyCode::Right) {
-                gs.player.angle += 5.0;
+                gs.player.angle = (gs.player.angle + 5.0) % 360.0;
             }
 
             let rotation = gs.player.angle.to_radians();
             if is_key_down(KeyCode::Up) {
                 gs.player.vel = vec2(
                     gs.player.vel.x + (7.0 * delta) * rotation.sin(),
-                    gs.player.vel.y + (7.0 * delta) * rotation.cos(),
+                    gs.player.vel.y - (7.0 * delta) * rotation.cos(),
                 );
             }
             if is_key_down(KeyCode::Down) {
                 gs.player.vel = vec2(
                     gs.player.vel.x - (7.0 * delta) * rotation.sin(),
-                    gs.player.vel.y - (7.0 * delta) * rotation.cos(),
+                    gs.player.vel.y + (7.0 * delta) * rotation.cos(),
                 );
             }
         }
@@ -137,7 +137,12 @@ fn rotate(point: Vec2, angle: &f32, origin: &Vec2) -> Vec2 {
 // let Er = rotate(E, angle, &pos);
 fn draw_spaceship(ship: &Spaceship, scl: f32) {
     let Spaceship {
-        pos, angle, w, h, ..
+        pos,
+        vel,
+        angle,
+        w,
+        h,
+        ..
     } = ship;
 
     // let pd = 10.0;
@@ -145,7 +150,7 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
     // let B = rotate(vec2(-pd, -pd), angle, &vec2(0.0, 0.0));
     // let C = rotate(vec2(pd, -pd), angle, &vec2(0.0, 0.0));
 
-    let rotation = angle.to_radians();
+    let rotation = (angle).to_radians();
     let SHIP_HEIGHT = h * scl;
     let SHIP_BASE = w * scl;
     // let new_x = p.x * cos - p.y * sin;
@@ -169,8 +174,9 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
     // draw_line(Br.x, Br.y, Dr.x, Dr.y, 1.0, BLACK);
     // draw_line(Cr.x, Cr.y, Er.x, Er.y, 1.0, BLACK);
 
-    // draw_circle(centroid.x, centroid.y, 0.1 * scl, GREEN);
     draw_circle(pos.x, pos.y, 0.1 * scl, RED);
+
+    draw_line(pos.x, pos.y, pos.x + vel.x, pos.y + vel.y, 1.0, GREEN)
     // draw_circle(centroid.x, centroid.y, 0.1 * scl, RED)
 }
 
@@ -186,7 +192,14 @@ fn draw(gs: &GameState) {
                 100.0,
                 30.0,
                 BLACK,
-            )
+            );
+            draw_text(
+                &format!("{}", gs.player.angle.to_string()),
+                100.0,
+                200.0,
+                30.0,
+                BLACK,
+            );
         }
         _ => {}
     }
@@ -201,7 +214,7 @@ async fn main() {
             w: PLAYER_WIDTH,
             h: PLAYER_HEIGHT,
             pos: vec2(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0),
-            angle: 90.0,
+            angle: 0.0,
             vel: vec2(0.0, 0.0),
             acc: 0.0,
         },
