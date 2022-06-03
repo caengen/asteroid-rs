@@ -11,6 +11,8 @@ const UNITS: f32 = 16.0;
 const PLAYER_WIDTH: f32 = 1.0;
 const PLAYER_HEIGHT: f32 = 1.0;
 const BULLET_WIDTH: f32 = 4.0;
+const BULLET_LIVE_TIME: f64 = 2.0;
+const TURRET_COOLDOWN: f64 = 0.5;
 const PLAYER_ACCELERATION: f32 = 10.0;
 
 enum RunState {
@@ -28,7 +30,7 @@ struct Asteroid {
 
 struct Bullet {
     pos: Vec2,
-    created_at: f32,
+    created_at: f64,
     vel: Vec2,
 }
 
@@ -39,6 +41,7 @@ struct Spaceship {
     angle: f32,
     vel: Vec2,
     acc: f32,
+    last_turret_frame: f64,
 }
 struct GameState {
     scl: f32, // scale
@@ -52,8 +55,7 @@ struct GameState {
 fn handle_input(gs: &mut GameState) {
     let delta = get_frame_time();
     let rotation = gs.player.angle.to_radians();
-    let sh = screen_height() * gs.scl; // ship height
-    let sw = screen_width() * gs.scl; // ship width
+    let sh = gs.player.h * gs.scl; // ship height
 
     match gs.run_state {
         RunState::Running => {
@@ -76,11 +78,16 @@ fn handle_input(gs: &mut GameState) {
                     gs.player.vel.y + (7.0 * delta) * rotation.cos(),
                 );
             }
-            if is_key_pressed(KeyCode::Space) {
+            let time = get_time();
+            if is_key_down(KeyCode::Space) && time - gs.player.last_turret_frame > TURRET_COOLDOWN {
+                gs.player.last_turret_frame = time;
                 gs.bullets.push(Bullet {
-                    pos: vec2(gs.player.pos.x, gs.player.pos.y),
-                    created_at: get_frame_time(),
-                    vel: vec2(100.0 * rotation.sin(), -(100.0 * rotation.cos())),
+                    pos: vec2(
+                        gs.player.pos.x + rotation.sin() * (sh / 2.),
+                        gs.player.pos.y - rotation.cos() * (sh / 2.),
+                    ),
+                    created_at: time,
+                    vel: gs.player.vel + vec2(200.0 * rotation.sin(), -(200.0 * rotation.cos())),
                 })
             }
         }
@@ -107,6 +114,7 @@ fn wrap(pos: Vec2, width: f32, height: f32) -> Vec2 {
 
 fn update(gs: &mut GameState) {
     let delta = get_frame_time();
+    let time = get_time();
     match gs.run_state {
         RunState::Running => {
             let rotation = gs.player.angle.to_radians();
@@ -127,8 +135,14 @@ fn update(gs: &mut GameState) {
 
             // update bullets and handle bounds
             for bullet in gs.bullets.iter_mut() {
-                bullet.pos = wrap(bullet.pos + bullet.vel * delta, BULLET_WIDTH, BULLET_WIDTH);
+                bullet.pos = wrap(
+                    bullet.pos + (bullet.vel * delta),
+                    BULLET_WIDTH,
+                    BULLET_WIDTH,
+                );
             }
+            gs.bullets
+                .retain(|b| time - b.created_at < BULLET_LIVE_TIME);
 
             // handle bounds
             gs.player.pos = wrap(gs.player.pos, gs.player.w, gs.player.h)
@@ -213,6 +227,7 @@ async fn main() {
             angle: 0.0,
             vel: vec2(0.0, 0.0),
             acc: 0.0,
+            last_turret_frame: 0.0,
         },
         asteroids: vec![
             Asteroid {
