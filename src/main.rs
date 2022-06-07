@@ -1,6 +1,8 @@
 use macroquad::prelude::*;
 use std::ops::Add;
 
+const DEBUG: bool = true;
+
 const SCREEN_WIDTH: f32 = 600.0;
 const SCREEN_HEIGHT: f32 = 400.0;
 const ASTEROID_MAX_SIZE: i8 = 3;
@@ -27,17 +29,18 @@ enum RunState {
 struct Asteroid {
     pos: Vec2,
     vel: Vec2,
-    rot: f32,
+    angle: f32,
     size: f32,
     points: Vec<Vec2>,
     w: f32,
+    collision: bool,
 }
 
 impl Asteroid {
     pub fn get_points(&self) -> Vec<Vec2> {
-        let rad = self.rot.to_radians();
-        let c = rad.cos();
-        let s = rad.sin();
+        let rot = self.angle.to_radians();
+        let c = rot.cos();
+        let s = rot.sin();
         let mut points = Vec::new();
         self.points.iter().for_each(|p| {
             points.push(vec2(
@@ -54,6 +57,7 @@ struct Bullet {
     pos: Vec2,
     created_at: f64,
     vel: Vec2,
+    collision: bool,
 }
 
 struct Spaceship {
@@ -71,6 +75,22 @@ struct GameState {
     asteroids: Vec<Asteroid>,
     lives: i8,
     run_state: RunState,
+}
+
+/*
+    Line segment intersection algorithm.
+    The lines AB and CD intersect if and only if points A and B are separated
+    by segment CD and points C and D are separated by segment AB. If points
+    A and B are separated by segment CD then ACD and BCD should have opposite
+    orientation meaning either ACD or BCD is counterclockwise but not both.
+    ref: https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
+*/
+fn ccw(a: Vec2, b: Vec2, c: Vec2) -> bool {
+    (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
+}
+
+fn intersects(a: Vec2, b: Vec2, c: Vec2, d: Vec2) -> bool {
+    ccw(a, c, d) != ccw(b, c, d) && ccw(a, b, c) != ccw(a, b, d)
 }
 
 fn handle_input(gs: &mut GameState) {
@@ -109,6 +129,7 @@ fn handle_input(gs: &mut GameState) {
                     ),
                     created_at: time,
                     vel: vec2(BULLET_VEL * rotation.sin(), -(BULLET_VEL * rotation.cos())),
+                    collision: false,
                 })
             }
         }
@@ -133,35 +154,7 @@ fn wrap(pos: Vec2, width: f32, height: f32) -> Vec2 {
     new_pos
 }
 
-fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) -> Vec<Asteroid> {
-    let mut asteroids = Vec::new();
-    let angle_inc = 360.0 / amount as f32;
-
-    for i in 1..=amount {
-        let rot = (angle_inc * i as f32 + (60.0 * crate::rand::gen_range(0.1, 1.0))).to_radians();
-        let rand_vel_x = ASTEROID_VEL;
-        let rand_vel_y = ASTEROID_VEL;
-        let pos = vec2(
-            spawn_point.x + r * scl * rot.sin(),
-            spawn_point.y - r * scl * rot.cos(),
-        );
-        let points = get_points(vec2(0.0, 0.0), 8, size * scl);
-        let w = points[0].distance(points[(points.len() / 2) as usize]);
-        let a = Asteroid {
-            pos,
-            vel: vec2(rand_vel_x, rand_vel_y),
-            size,
-            points,
-            w,
-            rot,
-        };
-        asteroids.push(a)
-    }
-
-    asteroids
-}
-
-fn get_points(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
+fn create_polygon_points(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
     let mut points = Vec::new();
     let angle_inc = 360.0 / amount as f32;
     for i in 1..=amount {
@@ -174,6 +167,33 @@ fn get_points(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
     }
 
     points
+}
+
+fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) -> Vec<Asteroid> {
+    let mut asteroids = Vec::new();
+    let angle_inc = 360.0 / amount as f32;
+
+    for i in 1..=amount {
+        let rot = ((angle_inc * i as f32 + (30.0 * crate::rand::gen_range(0.1, 1.0))) % 360.0)
+            .to_radians();
+        let rand_vel_x = ASTEROID_VEL;
+        let rand_vel_y = ASTEROID_VEL;
+        let pos = vec2(spawn_point.x + r * rot.sin(), spawn_point.y - r * rot.cos());
+        let points = create_polygon_points(vec2(0.0, 0.0), 8, size * scl);
+        let w = points[0].distance(points[(points.len() / 2) as usize]);
+        let a = Asteroid {
+            pos,
+            vel: vec2(rand_vel_x, rand_vel_y),
+            size,
+            points,
+            w,
+            angle: rot,
+            collision: false,
+        };
+        asteroids.push(a)
+    }
+
+    asteroids
 }
 
 fn update(gs: &mut GameState) {
@@ -203,19 +223,62 @@ fn update(gs: &mut GameState) {
                     asteroid.w,
                     asteroid.w,
                 );
-                asteroid.rot = (asteroid.rot + 0.5) % 360.0;
+                asteroid.angle = (asteroid.angle + 0.5) % 360.0;
             }
 
             // update bullets
             for bullet in gs.bullets.iter_mut() {
+                let a = bullet.pos;
                 bullet.pos = wrap(
                     bullet.pos + (bullet.vel * delta),
                     BULLET_WIDTH,
                     BULLET_WIDTH,
                 );
+                let b = bullet.pos;
+
+                // check for collisions
+                for ast in gs.asteroids.iter_mut() {
+                    let p = ast.get_points();
+                    for i in 0..p.len() {
+                        if intersects(a, b, p[i], p[(i + 1) % p.len()]) {
+                            bullet.collision = true;
+                            break;
+                        }
+                    }
+
+                    if bullet.collision {
+                        ast.collision = true;
+                        break;
+                    }
+                }
             }
             gs.bullets
-                .retain(|b| time - b.created_at < BULLET_LIVE_TIME);
+                .retain(|b| time - b.created_at < BULLET_LIVE_TIME && !b.collision);
+
+            let mut new_asteroids = Vec::new();
+            gs.asteroids.retain(|a| {
+                if (a.collision && a.size > 1.0) {
+                    debug!(
+                        "spawning new asteroids at x={}, y={} with w={}",
+                        a.pos.x, a.pos.y, a.w
+                    );
+                    new_asteroids.append(&mut spawn_asteroids(
+                        a.pos,
+                        a.w / 2.0,
+                        a.size as i32,
+                        a.size - 1.0,
+                        gs.scl,
+                    ));
+                }
+
+                !a.collision
+            });
+            if new_asteroids.len() > 0 {
+                new_asteroids
+                    .iter()
+                    .for_each(|a| debug!("new asteroid pos x = {}, y = {}", a.pos.x, a.pos.y));
+                gs.asteroids.append(&mut new_asteroids);
+            }
 
             // handle player bounds
             gs.player.pos = wrap(gs.player.pos, gs.player.w, gs.player.h)
@@ -234,36 +297,46 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
         ..
     } = ship;
 
-    let rotation = angle.to_radians();
+    let rot = angle.to_radians();
     let sh = h * scl; // ship height
     let sw = w * scl; // ship width
 
     let v1 = Vec2::new(
-        ship.pos.x + rotation.sin() * sh / 2.,
-        ship.pos.y - rotation.cos() * sh / 2.,
+        ship.pos.x + rot.sin() * sh / 2.,
+        ship.pos.y - rot.cos() * sh / 2.,
     );
     let v2 = Vec2::new(
-        ship.pos.x - rotation.cos() * sw / 2. - rotation.sin() * sh / 2.,
-        ship.pos.y - rotation.sin() * sw / 2. + rotation.cos() * sh / 2.,
+        ship.pos.x - rot.cos() * sw / 2. - rot.sin() * sh / 2.,
+        ship.pos.y - rot.sin() * sw / 2. + rot.cos() * sh / 2.,
     );
     let v3 = Vec2::new(
-        ship.pos.x + rotation.cos() * sw / 2. - rotation.sin() * sh / 2.,
-        ship.pos.y + rotation.sin() * sw / 2. + rotation.cos() * sh / 2.,
+        ship.pos.x + rot.cos() * sw / 2. - rot.sin() * sh / 2.,
+        ship.pos.y + rot.sin() * sw / 2. + rot.cos() * sh / 2.,
     );
 
     draw_triangle_lines(v1, v2, v3, 1.0, BLACK);
 
     // draw_circle(pos.x, pos.y, 0.1 * scl, RED);
 
-    // vel vector debugging
-    draw_line(
-        pos.x,
-        pos.y,
-        pos.x + vel.x * scl / 2.0,
-        pos.y + vel.y * scl / 2.0,
-        1.0,
-        GREEN,
-    );
+    if DEBUG {
+        draw_line(
+            pos.x,
+            pos.y,
+            pos.x + vel.x * scl / 2.0,
+            pos.y + vel.y * scl / 2.0,
+            1.0,
+            GREEN,
+        );
+        if vel.x != 0.0 && vel.y != 0.0 {
+            draw_text(
+                &format!("Vel: {}", vel.to_string()),
+                pos.x + vel.x * scl / 2.0 + 5.0,
+                pos.y + vel.y * scl / 2.0 + 5.0,
+                15.0,
+                GREEN,
+            );
+        }
+    }
 }
 
 fn draw(gs: &GameState) {
@@ -286,20 +359,37 @@ fn draw(gs: &GameState) {
                 }
             }
 
-            draw_text(
-                &format!("{}", gs.player.vel.to_string()),
-                100.0,
-                100.0,
-                30.0,
-                BLACK,
-            );
-            draw_text(
-                &format!("{}", gs.player.angle.to_string()),
-                100.0,
-                200.0,
-                30.0,
-                BLACK,
-            );
+            if DEBUG {
+                draw_text(&format!("fps: {}", get_fps()), 10.0, 20.0, 20.0, BLACK);
+                draw_text(
+                    &format!("Vel: {}", gs.player.vel.to_string()),
+                    10.0,
+                    40.0,
+                    20.0,
+                    BLACK,
+                );
+                draw_text(
+                    &format!("Angle: {}", gs.player.angle.to_string()),
+                    10.0,
+                    60.0,
+                    20.0,
+                    BLACK,
+                );
+                draw_text(
+                    &format!("W:{}, H:{}", screen_width(), screen_height()),
+                    10.0,
+                    80.0,
+                    20.0,
+                    BLACK,
+                );
+                draw_text(
+                    &format!("Asteroid count: {}", gs.asteroids.len()),
+                    10.0,
+                    100.0,
+                    20.0,
+                    BLACK,
+                );
+            }
         }
         _ => {}
     }
@@ -322,7 +412,7 @@ async fn main() {
             vel: vec2(0.0, 0.0),
             last_turret_frame: 0.0,
         },
-        asteroids: spawn_asteroids(center_pos, PLAYER_WIDTH * 8.0, 3, 3.0, scale),
+        asteroids: spawn_asteroids(center_pos, screen_width() / 3.0, 3, 3.0, scale),
         bullets: Vec::new(),
         lives: 3,
     };
