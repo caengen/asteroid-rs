@@ -23,6 +23,8 @@ jobs:
     - name: Copy wasm
       run: cp "./target/wasm32-unknown-unknown/debug/asteroids-rs.wasm" "./bin/asteroids-rs.wasm"
     - name: Commit wasm
-      uses: ad-m/github-push-action@master
+      uses: EndBug/add-and-commit@v9
       with:
         github_token: ${{ secrets.PASS_TOKEN }}
+        add: '.bin'
+        
