@@ -1,7 +1,5 @@
 use macroquad::prelude::*;
 
-const DEBUG: bool = false;
-
 const FONT_SIZE: f32 = 20.0;
 const SCREEN_WIDTH: f32 = 600.0;
 const SCREEN_HEIGHT: f32 = 400.0;
@@ -10,7 +8,7 @@ const ASTEROID_VEL: f32 = 60.0;
 const FRICT: f32 = 0.75;
 // const UNITS: f32 = 32.0;
 const UNITS: f32 = 16.0;
-const MAX_PLAYER_LIVES: i8 = 3;
+const MAX_PLAYER_LIVES: i32 = 3;
 const PLAYER_WIDTH: f32 = 1.0;
 const PLAYER_HEIGHT: f32 = 1.0;
 const PLAYER_ACCL: f32 = 5.0;
@@ -115,10 +113,11 @@ struct GameState {
     player: Spaceship,
     bullets: Vec<Bullet>,
     asteroids: Vec<Asteroid>,
-    lives: i8,
+    lives: i32,
     run_state: RunState,
     play_time: f32,
-    points: i32,
+    score: i32,
+    debug: bool,
 }
 
 /*
@@ -144,20 +143,20 @@ fn handle_input(gs: &mut GameState) {
 
     match gs.run_state {
         RunState::Running => {
-            if is_key_down(KeyCode::Left) {
+            if is_key_down(KeyCode::Left) || is_key_down(KeyCode::A) {
                 gs.player.angle = -((gs.player.angle - ANGLE_STEP).abs() % 360.0);
             }
-            if is_key_down(KeyCode::Right) {
+            if is_key_down(KeyCode::Right) || is_key_down(KeyCode::D) {
                 gs.player.angle = (gs.player.angle + ANGLE_STEP) % 360.0;
             }
 
-            if is_key_down(KeyCode::Up) {
+            if is_key_down(KeyCode::Up) || is_key_down(KeyCode::W) {
                 gs.player.vel = vec2(
                     gs.player.vel.x + (PLAYER_ACCL * delta) * rotation.sin(),
                     gs.player.vel.y - (PLAYER_ACCL * delta) * rotation.cos(),
                 );
             }
-            if is_key_down(KeyCode::Down) {
+            if is_key_down(KeyCode::Down) || is_key_down(KeyCode::S) {
                 gs.player.vel = vec2(
                     gs.player.vel.x - PLAYER_ACCL * delta * rotation.sin(),
                     gs.player.vel.y + PLAYER_ACCL * delta * rotation.cos(),
@@ -175,6 +174,10 @@ fn handle_input(gs: &mut GameState) {
                     vel: vec2(BULLET_VEL * rotation.sin(), -(BULLET_VEL * rotation.cos())),
                     collision: false,
                 })
+            }
+
+            if is_key_pressed(KeyCode::G) {
+                gs.debug = !gs.debug;
             }
         }
         RunState::Death => {
@@ -327,7 +330,7 @@ fn update(gs: &mut GameState) {
                     }
 
                     if bullet.collision {
-                        gs.points += (6.0 / ast.size * GAME_TIME / gs.play_time) as i32;
+                        gs.score += (6.0 / ast.size * GAME_TIME / gs.play_time) as i32;
                         ast.collision = true;
                         break;
                     }
@@ -338,7 +341,7 @@ fn update(gs: &mut GameState) {
 
             let mut new_asteroids = Vec::new();
             gs.asteroids.retain(|a| {
-                if (a.collision && a.size > 1.0) {
+                if a.collision && a.size > 1.0 {
                     new_asteroids.append(&mut spawn_asteroids(
                         a.pos,
                         a.w / 4.0,
@@ -365,7 +368,7 @@ fn update(gs: &mut GameState) {
     }
 }
 
-fn draw_spaceship(ship: &Spaceship, scl: f32) {
+fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
     let Spaceship {
         pos,
         vel,
@@ -383,7 +386,7 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
 
     // draw_circle(pos.x, pos.y, 0.1 * scl, RED);
 
-    if DEBUG {
+    if debug {
         draw_line(
             pos.x,
             pos.y,
@@ -405,8 +408,8 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
 }
 
 fn draw_ui(gs: &GameState) {
-    draw_text("POINTS", 20.0, 20.0, FONT_SIZE, BLACK);
-    draw_text(&gs.points.to_string(), 20.0, 35.0, FONT_SIZE + 5.0, BLACK);
+    draw_text("SCORE", 20.0, 20.0, FONT_SIZE, BLACK);
+    draw_text(&gs.score.to_string(), 20.0, 35.0, FONT_SIZE + 5.0, BLACK);
 
     draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, BLACK);
     draw_text(
@@ -437,7 +440,7 @@ fn draw_ui(gs: &GameState) {
                 + (PLAYER_WIDTH * gs.scl * i as f32),
             35.0,
         );
-        draw_spaceship(&mock, gs.scl)
+        draw_spaceship(&mock, gs.scl, gs.debug)
     }
 }
 
@@ -446,7 +449,7 @@ fn draw(gs: &GameState) {
 
     match gs.run_state {
         RunState::Running | RunState::Death => {
-            draw_spaceship(&gs.player, gs.scl);
+            draw_spaceship(&gs.player, gs.scl, gs.debug);
 
             for bullet in gs.bullets.iter() {
                 draw_circle(bullet.pos.x, bullet.pos.y, BULLET_WIDTH / 2.0, BLACK)
@@ -475,7 +478,7 @@ fn draw(gs: &GameState) {
                 )
             }
 
-            if DEBUG {
+            if gs.debug {
                 draw_text(
                     &format!("fps: {}", get_fps()),
                     10.0,
@@ -540,7 +543,7 @@ fn draw(gs: &GameState) {
                 FONT_SIZE,
                 BLACK,
             );
-            let timex = ((GAME_TIME - gs.play_time) / 10.0).floor();
+            let timex = ((GAME_TIME - gs.play_time) / 10.0) as i32;
             draw_text(
                 format!("Time multiplier x{}", timex as i32).as_str(),
                 sw / 2.0 - 60.0,
@@ -549,11 +552,7 @@ fn draw(gs: &GameState) {
                 BLACK,
             );
             draw_text(
-                format!(
-                    "Final score: {}",
-                    ((gs.points as f32 * gs.lives as f32) as f32 * timex) as i32
-                )
-                .as_str(),
+                format!("Final score: {}", (gs.score * (gs.lives + 1)) * timex).as_str(),
                 sw / 2.0 - 60.0,
                 sh / 4.0 + 60.0,
                 FONT_SIZE,
@@ -591,7 +590,8 @@ async fn main() {
         bullets: Vec::new(),
         lives: MAX_PLAYER_LIVES,
         play_time: 0.0,
-        points: 0,
+        score: 0,
+        debug: false,
     };
 
     loop {
