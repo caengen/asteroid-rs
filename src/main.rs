@@ -186,7 +186,7 @@ fn handle_input(gs: &mut GameState) {
             }
         }
         RunState::GameOver => {
-            if is_key_down(KeyCode::Space) {
+            if is_key_down(KeyCode::Enter) {
                 *gs = get_new_game_state();
             }
         }
@@ -557,7 +557,7 @@ fn draw(gs: &GameState) {
                 BLACK,
             );
 
-            let text = "Press Space to restart.";
+            let text = "Press Enter to restart.";
             let text_size = measure_text(text, None, FONT_SIZE as _, 1.0);
             draw_text(
                 text,
