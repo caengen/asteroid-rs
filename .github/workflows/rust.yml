@@ -26,5 +26,5 @@ jobs:
       uses: EndBug/add-and-commit@v9
       with:
         github_token: ${{ secrets.PASS_TOKEN }}
-        add: '.bin'
+        add: './bin/asteroids-rs.wasm'
         
