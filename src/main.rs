@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 const FONT_SIZE: f32 = 20.0;
 const SCREEN_WIDTH: f32 = 600.0;
