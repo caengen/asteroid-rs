@@ -185,6 +185,11 @@ fn handle_input(gs: &mut GameState) {
                 gs.run_state = RunState::Running;
             }
         }
+        RunState::GameOver => {
+            if is_key_down(KeyCode::Space) {
+                *gs = get_new_game_state();
+            }
+        }
         _ => {}
     }
 }
@@ -369,14 +374,7 @@ fn update(gs: &mut GameState) {
 }
 
 fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
-    let Spaceship {
-        pos,
-        vel,
-        angle,
-        w,
-        h,
-        ..
-    } = ship;
+    let Spaceship { pos, vel, .. } = ship;
 
     let p = ship.get_points(scl);
 
@@ -475,7 +473,7 @@ fn draw(gs: &GameState) {
                     screen_height() / 2.0 + PLAYER_HEIGHT * 2.0 * gs.scl,
                     FONT_SIZE,
                     BLACK,
-                )
+                );
             }
 
             if gs.debug {
@@ -558,17 +556,26 @@ fn draw(gs: &GameState) {
                 FONT_SIZE,
                 BLACK,
             );
+
+            let text = "Press Space to restart.";
+            let text_size = measure_text(text, None, FONT_SIZE as _, 1.0);
+            draw_text(
+                text,
+                sw / 2.0 - text_size.width / 2.0,
+                sh / 4.0 + 80.0,
+                FONT_SIZE,
+                BLACK,
+            )
         }
         _ => {}
     }
 }
-#[macroquad::main("asteroids.rs")]
-async fn main() {
-    request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+fn get_new_game_state() -> GameState {
     let scale = screen_height() / UNITS;
     let center_pos = vec2(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0);
-    let mut gs = GameState {
+
+    let gs = GameState {
         run_state: RunState::Running,
         scl: scale,
         player: Spaceship {
@@ -592,6 +599,15 @@ async fn main() {
         score: 0,
         debug: false,
     };
+
+    gs
+}
+
+#[macroquad::main("asteroids.rs")]
+async fn main() {
+    request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    let mut gs = get_new_game_state();
 
     loop {
         gs.scl = screen_height() / UNITS;
