@@ -562,7 +562,6 @@ fn draw(gs: &GameState) {
         _ => {}
     }
 }
-
 #[macroquad::main("asteroids.rs")]
 async fn main() {
     request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
