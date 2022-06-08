@@ -19,6 +19,7 @@ const BULLET_WIDTH: f32 = 4.0;
 const BULLET_VEL: f32 = 300.0;
 const BULLET_LIVE_TIME: f64 = 1.0; // in seconds
 const TURRET_COOLDOWN: f64 = 0.5; // in seconds
+const GAME_TIME: f32 = 100.0; // in seconds
 
 enum RunState {
     Menu,
@@ -76,6 +77,8 @@ struct GameState {
     asteroids: Vec<Asteroid>,
     lives: i8,
     run_state: RunState,
+    play_time: f32,
+    points: i32,
 }
 
 /*
@@ -199,6 +202,7 @@ fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) 
 
 fn update(gs: &mut GameState) {
     let delta = get_frame_time();
+    gs.play_time += delta;
     let time = get_time();
     match gs.run_state {
         RunState::Running => {
@@ -248,6 +252,7 @@ fn update(gs: &mut GameState) {
                     }
 
                     if bullet.collision {
+                        gs.points += (6.0 / ast.size * GAME_TIME / gs.play_time) as i32;
                         ast.collision = true;
                         break;
                     }
@@ -344,6 +349,17 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
 }
 
 fn draw_ui(gs: &GameState) {
+    draw_text("POINTS", 20.0, 20.0, 20.0, BLACK);
+    draw_text(&gs.points.to_string(), 20.0, 35.0, 25.0, BLACK);
+
+    draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, 20.0, BLACK);
+    draw_text(
+        &((GAME_TIME - gs.play_time) as i8).to_string(),
+        screen_width() / 2.0 - 10.0,
+        35.0,
+        25.0,
+        BLACK,
+    );
     draw_text(
         "LIVES",
         screen_width() - (PLAYER_WIDTH * gs.scl) * MAX_PLAYER_LIVES as f32,
@@ -452,6 +468,8 @@ async fn main() {
         ),
         bullets: Vec::new(),
         lives: MAX_PLAYER_LIVES,
+        play_time: 0.0,
+        points: 0,
     };
 
     loop {
