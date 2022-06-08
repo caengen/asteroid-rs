@@ -3,6 +3,7 @@ use std::ops::Add;
 
 const DEBUG: bool = true;
 
+const FONT_SIZE: f32 = 20.0;
 const SCREEN_WIDTH: f32 = 600.0;
 const SCREEN_HEIGHT: f32 = 400.0;
 const ASTEROID_MAX_SIZE: f32 = 3.0;
@@ -21,9 +22,11 @@ const BULLET_LIVE_TIME: f64 = 1.0; // in seconds
 const TURRET_COOLDOWN: f64 = 0.5; // in seconds
 const GAME_TIME: f32 = 100.0; // in seconds
 
+#[derive(PartialEq)]
 enum RunState {
     Menu,
     Running,
+    Death,
     GameOver,
 }
 
@@ -70,6 +73,44 @@ struct Spaceship {
     vel: Vec2,
     last_turret_frame: f64,
 }
+
+impl Spaceship {
+    fn reset(&mut self) {
+        self.vel = vec2(0.0, 0.0);
+        self.angle = 0.0;
+        self.pos = vec2(screen_width() / 2.0, screen_height() / 2.0);
+    }
+
+    fn get_points(&self, scale: f32) -> Vec<Vec2> {
+        let rot = self.angle.to_radians();
+        let sh = self.h * scale; // ship height
+        let sw = self.w * scale; // ship width
+
+        let v1 = vec2(
+            self.pos.x + rot.sin() * sh / 2.,
+            self.pos.y - rot.cos() * sh / 2.,
+        );
+        let v2 = vec2(
+            self.pos.x - rot.cos() * sw / 2. - rot.sin() * sh / 2.,
+            self.pos.y - rot.sin() * sw / 2. + rot.cos() * sh / 2.,
+        );
+        let v3 = vec2(
+            self.pos.x + rot.cos() * sw / 2. - rot.sin() * sh / 2.,
+            self.pos.y + rot.sin() * sw / 2. + rot.cos() * sh / 2.,
+        );
+        let v4 = vec2(
+            self.pos.x - rot.cos() * sw / 1.5 - rot.sin() * sh / 1.5,
+            self.pos.y - rot.sin() * sw / 1.5 + rot.cos() * sh / 1.5,
+        );
+        let v5 = vec2(
+            self.pos.x + rot.cos() * sw / 1.5 - rot.sin() * sh / 1.5,
+            self.pos.y + rot.sin() * sw / 1.5 + rot.cos() * sh / 1.5,
+        );
+
+        vec![v1, v2, v3, v4, v5]
+    }
+}
+
 struct GameState {
     scl: f32, // scale
     player: Spaceship,
@@ -137,6 +178,11 @@ fn handle_input(gs: &mut GameState) {
                 })
             }
         }
+        RunState::Death => {
+            if is_key_down(KeyCode::Space) {
+                gs.run_state = RunState::Running;
+            }
+        }
         _ => {}
     }
 }
@@ -202,10 +248,13 @@ fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) 
 
 fn update(gs: &mut GameState) {
     let delta = get_frame_time();
-    gs.play_time += delta;
     let time = get_time();
     match gs.run_state {
-        RunState::Running => {
+        RunState::Running | RunState::Death => {
+            if gs.run_state == RunState::Running {
+                gs.play_time += delta;
+            }
+
             gs.player.pos = gs.player.pos + gs.player.vel;
             // apply space friction
             let mut new_vel = gs.player.vel;
@@ -222,6 +271,7 @@ fn update(gs: &mut GameState) {
             gs.player.vel = new_vel;
 
             // update asteroids
+            let mut player_collision = false;
             for asteroid in gs.asteroids.iter_mut() {
                 asteroid.pos = wrap(
                     asteroid.pos + (asteroid.vel * delta),
@@ -229,6 +279,32 @@ fn update(gs: &mut GameState) {
                     asteroid.w,
                 );
                 asteroid.angle = (asteroid.angle + 1.5 / asteroid.size) % 360.0;
+
+                // check for collisions with player
+                if gs.run_state == RunState::Running {
+                    let p1 = gs.player.get_points(gs.scl);
+                    let p2 = asteroid.get_points();
+                    for i in 0..3 {
+                        let a = p1[i];
+                        let b = p1[(i + 1) % 3];
+                        for j in 0..p2.len() {
+                            if intersects(a, b, p2[j], p2[(j + 1) % p2.len()]) {
+                                player_collision = true;
+                                break;
+                            }
+                        }
+                        if player_collision {
+                            gs.lives -= 1;
+                            if gs.lives > 0 {
+                                gs.player.reset();
+                                gs.run_state = RunState::Death;
+                            } else {
+                                gs.run_state = RunState::GameOver;
+                            }
+                            break;
+                        }
+                    }
+                }
             }
 
             // update bullets
@@ -279,6 +355,10 @@ fn update(gs: &mut GameState) {
                 gs.asteroids.append(&mut new_asteroids);
             }
 
+            if gs.asteroids.len() == 0 {
+                gs.run_state = RunState::GameOver;
+            }
+
             // handle player bounds
             gs.player.pos = wrap(gs.player.pos, gs.player.w, gs.player.h)
         }
@@ -296,34 +376,11 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
         ..
     } = ship;
 
-    let rot = angle.to_radians();
-    let sh = h * scl; // ship height
-    let sw = w * scl; // ship width
+    let p = ship.get_points(scl);
 
-    let v1 = vec2(
-        ship.pos.x + rot.sin() * sh / 2.,
-        ship.pos.y - rot.cos() * sh / 2.,
-    );
-    let v2 = vec2(
-        ship.pos.x - rot.cos() * sw / 2. - rot.sin() * sh / 2.,
-        ship.pos.y - rot.sin() * sw / 2. + rot.cos() * sh / 2.,
-    );
-    let v3 = vec2(
-        ship.pos.x + rot.cos() * sw / 2. - rot.sin() * sh / 2.,
-        ship.pos.y + rot.sin() * sw / 2. + rot.cos() * sh / 2.,
-    );
-    let v4 = vec2(
-        ship.pos.x - rot.cos() * sw / 1.5 - rot.sin() * sh / 1.5,
-        ship.pos.y - rot.sin() * sw / 1.5 + rot.cos() * sh / 1.5,
-    );
-    let v5 = vec2(
-        ship.pos.x + rot.cos() * sw / 1.5 - rot.sin() * sh / 1.5,
-        ship.pos.y + rot.sin() * sw / 1.5 + rot.cos() * sh / 1.5,
-    );
-
-    draw_triangle_lines(v1, v2, v3, 1.0, BLACK);
-    draw_line(v2.x, v2.y, v4.x, v4.y, 1.0, BLACK);
-    draw_line(v3.x, v3.y, v5.x, v5.y, 1.0, BLACK);
+    draw_triangle_lines(p[0], p[1], p[2], 1.0, BLACK);
+    draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 1.0, BLACK);
+    draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 1.0, BLACK);
 
     // draw_circle(pos.x, pos.y, 0.1 * scl, RED);
 
@@ -349,22 +406,22 @@ fn draw_spaceship(ship: &Spaceship, scl: f32) {
 }
 
 fn draw_ui(gs: &GameState) {
-    draw_text("POINTS", 20.0, 20.0, 20.0, BLACK);
-    draw_text(&gs.points.to_string(), 20.0, 35.0, 25.0, BLACK);
+    draw_text("POINTS", 20.0, 20.0, FONT_SIZE, BLACK);
+    draw_text(&gs.points.to_string(), 20.0, 35.0, FONT_SIZE + 5.0, BLACK);
 
-    draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, 20.0, BLACK);
+    draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, BLACK);
     draw_text(
         &((GAME_TIME - gs.play_time) as i8).to_string(),
         screen_width() / 2.0 - 10.0,
         35.0,
-        25.0,
+        FONT_SIZE + 5.0,
         BLACK,
     );
     draw_text(
         "LIVES",
         screen_width() - (PLAYER_WIDTH * gs.scl) * MAX_PLAYER_LIVES as f32,
         20.0,
-        20.0,
+        FONT_SIZE,
         BLACK,
     );
     let mut mock = Spaceship {
@@ -377,7 +434,8 @@ fn draw_ui(gs: &GameState) {
     };
     for i in 0..gs.lives {
         mock.pos = vec2(
-            screen_width() - (PLAYER_WIDTH * gs.scl) * (gs.lives - i) as f32,
+            screen_width() - PLAYER_WIDTH * gs.scl * MAX_PLAYER_LIVES as f32
+                + (PLAYER_WIDTH * gs.scl * i as f32),
             35.0,
         );
         draw_spaceship(&mock, gs.scl)
@@ -388,7 +446,7 @@ fn draw(gs: &GameState) {
     clear_background(WHITE);
 
     match gs.run_state {
-        RunState::Running => {
+        RunState::Running | RunState::Death => {
             draw_spaceship(&gs.player, gs.scl);
 
             for bullet in gs.bullets.iter() {
@@ -406,37 +464,102 @@ fn draw(gs: &GameState) {
 
             draw_ui(&gs);
 
+            if gs.run_state == RunState::Death {
+                let text = "Press Space to start.";
+                let text_size = measure_text(text, None, FONT_SIZE as _, 1.0);
+                draw_text(
+                    text,
+                    screen_width() / 2.0 - text_size.width / 2.0,
+                    screen_height() / 2.0 + PLAYER_HEIGHT * 2.0 * gs.scl,
+                    FONT_SIZE,
+                    BLACK,
+                )
+            }
+
             if DEBUG {
-                draw_text(&format!("fps: {}", get_fps()), 10.0, 50.0, 15.0, BLACK);
+                draw_text(
+                    &format!("fps: {}", get_fps()),
+                    10.0,
+                    50.0,
+                    FONT_SIZE - 5.0,
+                    BLACK,
+                );
                 draw_text(
                     &format!("Vel: {}", gs.player.vel.to_string()),
                     10.0,
                     60.0,
-                    15.0,
+                    FONT_SIZE - 5.0,
                     BLACK,
                 );
                 draw_text(
                     &format!("Angle: {}", gs.player.angle.to_string()),
                     10.0,
                     70.0,
-                    15.0,
+                    FONT_SIZE - 5.0,
                     BLACK,
                 );
                 draw_text(
                     &format!("W:{}, H:{}", screen_width(), screen_height()),
                     10.0,
                     80.0,
-                    15.0,
+                    FONT_SIZE - 5.0,
+                    BLACK,
+                );
+                draw_text(
+                    &format!("Player lives: {}", gs.lives),
+                    10.0,
+                    90.0,
+                    FONT_SIZE - 5.0,
                     BLACK,
                 );
                 draw_text(
                     &format!("Asteroid count: {}", gs.asteroids.len()),
                     10.0,
-                    90.0,
-                    15.0,
+                    100.0,
+                    FONT_SIZE - 5.0,
                     BLACK,
                 );
             }
+        }
+        RunState::GameOver => {
+            let sw = screen_width();
+            let sh = screen_height();
+            let size = FONT_SIZE * 1.5;
+            let text = "Game over.";
+            let text_size = measure_text(text, None, size as _, 1.0);
+            draw_text(
+                text,
+                sw / 2.0 - text_size.width / 2.0,
+                sh / 4.0,
+                size,
+                BLACK,
+            );
+            draw_text(
+                format!("Life multiplier x{}", gs.lives + 1).as_str(),
+                sw / 2.0 - 60.0,
+                sh / 4.0 + 20.0,
+                FONT_SIZE,
+                BLACK,
+            );
+            let timex = ((GAME_TIME - gs.play_time) / 10.0).floor();
+            draw_text(
+                format!("Time multiplier x{}", timex as i32).as_str(),
+                sw / 2.0 - 60.0,
+                sh / 4.0 + 40.0,
+                FONT_SIZE,
+                BLACK,
+            );
+            draw_text(
+                format!(
+                    "Final score: {}",
+                    ((gs.points as f32 * gs.lives as f32) as f32 * timex) as i32
+                )
+                .as_str(),
+                sw / 2.0 - 60.0,
+                sh / 4.0 + 60.0,
+                FONT_SIZE,
+                BLACK,
+            );
         }
         _ => {}
     }
