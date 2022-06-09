@@ -1,10 +1,15 @@
-use macroquad::prelude::*;
+use macroquad::prelude::{
+    clamp, clear_background, draw_circle, draw_line, draw_text, draw_triangle, get_fps,
+    get_frame_time, get_time, is_key_down, is_key_pressed, measure_text, next_frame,
+    request_new_screen_size, screen_height, screen_width, vec2, KeyCode, Vec2, BLACK, GREEN, WHITE,
+};
+use rand::prelude::*;
 
 const FONT_SIZE: f32 = 20.0;
 const SCREEN_WIDTH: f32 = 600.0;
 const SCREEN_HEIGHT: f32 = 400.0;
 const ASTEROID_MAX_SIZE: f32 = 3.0;
-const ASTEROID_VEL: f32 = 60.0;
+const ASTEROID_VEL: f32 = 6.0;
 const FRICT: f32 = 0.75;
 // const UNITS: f32 = 32.0;
 const UNITS: f32 = 16.0;
@@ -211,12 +216,13 @@ fn wrap(pos: Vec2, width: f32, height: f32) -> Vec2 {
     new_pos
 }
 
-fn create_polygon_points(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
+fn create_polygon(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
     let mut points = Vec::new();
     let angle_inc = 360.0 / amount as f32;
+    let mut rng = rand::thread_rng();
     for i in 1..=amount {
         let rot = (angle_inc * i as f32).to_radians();
-        let r = crate::rand::gen_range(0.75, 1.0);
+        let r = rng.gen_range(0.5..1.0);
         points.push(vec2(
             origo.x + PLAYER_WIDTH * r * size * rot.sin(),
             origo.y - PLAYER_WIDTH * r * size * rot.cos(),
@@ -230,17 +236,18 @@ fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) 
     let mut asteroids = Vec::new();
     let angle_inc = 360.0 / amount as f32;
 
+    let mut rng = rand::thread_rng();
+
     for i in 1..=amount {
-        let rot = ((angle_inc * i as f32 + (30.0 * crate::rand::gen_range(0.1, 1.0))) % 360.0)
-            .to_radians();
-        let rand_vel_x = ASTEROID_VEL / size;
-        let rand_vel_y = ASTEROID_VEL / size;
+        let rot =
+            ((angle_inc * i as f32 + (30.0 * (rng.gen_range(0.1..1.0)))) % 360.0).to_radians();
         let pos = vec2(spawn_point.x + r * rot.sin(), spawn_point.y - r * rot.cos());
-        let points = create_polygon_points(vec2(0.0, 0.0), 8, size * scl);
+        let vel = pos * ASTEROID_VEL / 20.0 / size;
+        let points = create_polygon(vec2(0.0, 0.0), 8, size * scl);
         let w = points[0].distance(points[(points.len() / 2) as usize]);
         let a = Asteroid {
             pos,
-            vel: vec2(rand_vel_x, rand_vel_y),
+            vel,
             size,
             points,
             w,
@@ -378,9 +385,9 @@ fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
 
     let p = ship.get_points(scl);
 
-    draw_triangle_lines(p[0], p[1], p[2], 1.0, BLACK);
-    draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 1.0, BLACK);
-    draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 1.0, BLACK);
+    draw_triangle(p[0], p[1], p[2], WHITE);
+    draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 1.0, WHITE);
+    draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 1.0, WHITE);
 
     // draw_circle(pos.x, pos.y, 0.1 * scl, RED);
 
@@ -406,23 +413,23 @@ fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
 }
 
 fn draw_ui(gs: &GameState) {
-    draw_text("SCORE", 20.0, 20.0, FONT_SIZE, BLACK);
-    draw_text(&gs.score.to_string(), 20.0, 35.0, FONT_SIZE + 5.0, BLACK);
+    draw_text("SCORE", 20.0, 20.0, FONT_SIZE, WHITE);
+    draw_text(&gs.score.to_string(), 20.0, 35.0, FONT_SIZE + 5.0, WHITE);
 
-    draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, BLACK);
+    draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, WHITE);
     draw_text(
         &((GAME_TIME - gs.play_time) as i8).to_string(),
         screen_width() / 2.0 - 10.0,
         35.0,
         FONT_SIZE + 5.0,
-        BLACK,
+        WHITE,
     );
     draw_text(
         "LIVES",
         screen_width() - (PLAYER_WIDTH * gs.scl) * MAX_PLAYER_LIVES as f32,
         20.0,
         FONT_SIZE,
-        BLACK,
+        WHITE,
     );
     let mut mock = Spaceship {
         w: PLAYER_WIDTH / 2.0,
@@ -443,14 +450,14 @@ fn draw_ui(gs: &GameState) {
 }
 
 fn draw(gs: &GameState) {
-    clear_background(WHITE);
+    clear_background(BLACK);
 
     match gs.run_state {
         RunState::Running | RunState::Death => {
             draw_spaceship(&gs.player, gs.scl, gs.debug);
 
             for bullet in gs.bullets.iter() {
-                draw_circle(bullet.pos.x, bullet.pos.y, BULLET_WIDTH / 2.0, BLACK)
+                draw_circle(bullet.pos.x, bullet.pos.y, BULLET_WIDTH / 2.0, WHITE)
             }
 
             for asteroid in gs.asteroids.iter() {
@@ -458,7 +465,7 @@ fn draw(gs: &GameState) {
                 for i in 0..=(p.len() - 1) {
                     let p1 = p[i];
                     let p2 = p[(i + 1) % p.len()];
-                    draw_line(p1.x, p1.y, p2.x, p2.y, 1.0, BLACK);
+                    draw_line(p1.x, p1.y, p2.x, p2.y, 1.0, WHITE);
                 }
             }
 
@@ -472,7 +479,7 @@ fn draw(gs: &GameState) {
                     screen_width() / 2.0 - text_size.width / 2.0,
                     screen_height() / 2.0 + PLAYER_HEIGHT * 2.0 * gs.scl,
                     FONT_SIZE,
-                    BLACK,
+                    WHITE,
                 );
             }
 
@@ -482,42 +489,42 @@ fn draw(gs: &GameState) {
                     10.0,
                     50.0,
                     FONT_SIZE - 5.0,
-                    BLACK,
+                    WHITE,
                 );
                 draw_text(
                     &format!("Vel: {}", gs.player.vel.to_string()),
                     10.0,
                     60.0,
                     FONT_SIZE - 5.0,
-                    BLACK,
+                    WHITE,
                 );
                 draw_text(
                     &format!("Angle: {}", gs.player.angle.to_string()),
                     10.0,
                     70.0,
                     FONT_SIZE - 5.0,
-                    BLACK,
+                    WHITE,
                 );
                 draw_text(
                     &format!("W:{}, H:{}", screen_width(), screen_height()),
                     10.0,
                     80.0,
                     FONT_SIZE - 5.0,
-                    BLACK,
+                    WHITE,
                 );
                 draw_text(
                     &format!("Player lives: {}", gs.lives),
                     10.0,
                     90.0,
                     FONT_SIZE - 5.0,
-                    BLACK,
+                    WHITE,
                 );
                 draw_text(
                     &format!("Asteroid count: {}", gs.asteroids.len()),
                     10.0,
                     100.0,
                     FONT_SIZE - 5.0,
-                    BLACK,
+                    WHITE,
                 );
             }
         }
@@ -532,14 +539,14 @@ fn draw(gs: &GameState) {
                 sw / 2.0 - text_size.width / 2.0,
                 sh / 4.0,
                 size,
-                BLACK,
+                WHITE,
             );
             draw_text(
                 format!("Life multiplier x{}", gs.lives + 1).as_str(),
                 sw / 2.0 - 60.0,
                 sh / 4.0 + 20.0,
                 FONT_SIZE,
-                BLACK,
+                WHITE,
             );
             let timex = ((GAME_TIME - gs.play_time) / 10.0) as i32;
             draw_text(
@@ -547,14 +554,14 @@ fn draw(gs: &GameState) {
                 sw / 2.0 - 60.0,
                 sh / 4.0 + 40.0,
                 FONT_SIZE,
-                BLACK,
+                WHITE,
             );
             draw_text(
                 format!("Final score: {}", (gs.score * (gs.lives + 1)) * timex).as_str(),
                 sw / 2.0 - 60.0,
                 sh / 4.0 + 60.0,
                 FONT_SIZE,
-                BLACK,
+                WHITE,
             );
 
             let text = "Press Enter to restart.";
@@ -564,7 +571,7 @@ fn draw(gs: &GameState) {
                 sw / 2.0 - text_size.width / 2.0,
                 sh / 4.0 + 80.0,
                 FONT_SIZE,
-                BLACK,
+                WHITE,
             )
         }
         _ => {}
