@@ -6,8 +6,8 @@ use macroquad::prelude::{
 use rand::prelude::*;
 
 const FONT_SIZE: f32 = 20.0;
-const SCREEN_WIDTH: f32 = 600.0;
-const SCREEN_HEIGHT: f32 = 400.0;
+const SCREEN_WIDTH: f32 = 800.0;
+const SCREEN_HEIGHT: f32 = 600.0;
 const ASTEROID_MAX_SIZE: f32 = 3.0;
 const ASTEROID_VEL: f32 = 6.0;
 const FRICT: f32 = 0.75;
