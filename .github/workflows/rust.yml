@@ -17,11 +17,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Download wasm target
-      run: rustup target add wasm32-wasi
+      run: rustup target add wasm32-unknown-unknown
     - name: Build
-      run: cargo build --target wasm32-wasi
+      run: cargo build --target wasm32-unknown-unknown
     - name: Copy wasm
-      run: cp "./target/wasm32-wasi/debug/asteroids-rs.wasm" "./bin/asteroids-rs.wasm"
+      run: cp "./target/wasm32-unknown-unknown/debug/asteroids-rs.wasm" "./bin/asteroids-rs.wasm"
     - name: Commit wasm
       uses: EndBug/add-and-commit@v9
       with:
