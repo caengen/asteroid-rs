@@ -149,7 +149,7 @@ fn handle_input(gs: &mut GameState) {
     match gs.run_state {
         RunState::Running => {
             if is_key_down(KeyCode::Left) || is_key_down(KeyCode::A) {
-                gs.player.angle = -((gs.player.angle - ANGLE_STEP).abs() % 360.0);
+                gs.player.angle = (gs.player.angle - ANGLE_STEP) % 360.0;
             }
             if is_key_down(KeyCode::Right) || is_key_down(KeyCode::D) {
                 gs.player.angle = (gs.player.angle + ANGLE_STEP) % 360.0;
