@@ -1,9 +1,4 @@
-use macroquad::prelude::{
-    clamp, clear_background, draw_circle, draw_line, draw_text, draw_triangle, get_fps,
-    get_frame_time, get_time, is_key_down, is_key_pressed, measure_text, next_frame,
-    request_new_screen_size, screen_height, screen_width, vec2, KeyCode, Vec2, BLACK, GREEN, WHITE,
-};
-use rand::prelude::*;
+use macroquad::prelude::*;
 
 const FONT_SIZE: f32 = 20.0;
 const SCREEN_WIDTH: f32 = 800.0;
@@ -219,10 +214,10 @@ fn wrap(pos: Vec2, width: f32, height: f32) -> Vec2 {
 fn create_polygon(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
     let mut points = Vec::new();
     let angle_inc = 360.0 / amount as f32;
-    let mut rng = rand::thread_rng();
+
     for i in 1..=amount {
         let rot = (angle_inc * i as f32).to_radians();
-        let r = rng.gen_range(0.5..1.0);
+        let r = rand::gen_range(0.5, 1.0);
         points.push(vec2(
             origo.x + PLAYER_WIDTH * r * size * rot.sin(),
             origo.y - PLAYER_WIDTH * r * size * rot.cos(),
@@ -236,11 +231,9 @@ fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) 
     let mut asteroids = Vec::new();
     let angle_inc = 360.0 / amount as f32;
 
-    let mut rng = rand::thread_rng();
-
     for i in 1..=amount {
         let rot =
-            ((angle_inc * i as f32 + (30.0 * (rng.gen_range(0.1..1.0)))) % 360.0).to_radians();
+            ((angle_inc * i as f32 + (30.0 * (rand::gen_range(0.1, 1.0)))) % 360.0).to_radians();
         let pos = vec2(spawn_point.x + r * rot.sin(), spawn_point.y - r * rot.cos());
         let vel = pos * ASTEROID_VEL / 20.0 / size;
         let points = create_polygon(vec2(0.0, 0.0), 8, size * scl);
@@ -613,7 +606,7 @@ fn get_new_game_state() -> GameState {
 #[macroquad::main("asteroids.rs")]
 async fn main() {
     request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
-
+    rand::srand(macroquad::miniquad::date::now() as _);
     let mut gs = get_new_game_state();
 
     loop {
