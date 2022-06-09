@@ -21,6 +21,7 @@ const ANGLE_STEP: f32 = 5.0;
 const BULLET_WIDTH: f32 = 4.0;
 const BULLET_VEL: f32 = 300.0;
 const BULLET_LIVE_TIME: f64 = 1.0; // in seconds
+const DEBRIS_LIVE_TIME: f64 = 0.5; // in seconds
 const TURRET_COOLDOWN: f64 = 0.5; // in seconds
 const GAME_TIME: f32 = 100.0; // in seconds
 
@@ -41,6 +42,11 @@ struct Asteroid {
     points: Vec<Vec2>,
     w: f32,
     collision: bool,
+}
+
+struct Debris {
+    time: f64,
+    asteroids: Vec<Asteroid>,
 }
 
 impl Asteroid {
@@ -118,6 +124,7 @@ struct GameState {
     player: Spaceship,
     bullets: Vec<Bullet>,
     asteroids: Vec<Asteroid>,
+    debris: Vec<Debris>,
     lives: i32,
     run_state: RunState,
     play_time: f32,
@@ -232,7 +239,14 @@ fn create_polygon(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
     points
 }
 
-fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) -> Vec<Asteroid> {
+fn spawn_asteroids(
+    spawn_point: Vec2,
+    r: f32,
+    amount: i32,
+    size: f32,
+    scl: f32,
+    is_debris: bool,
+) -> Vec<Asteroid> {
     let mut asteroids = Vec::new();
     let angle_inc = 360.0 / amount as f32;
 
@@ -242,8 +256,16 @@ fn spawn_asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) 
         let rot =
             ((angle_inc * i as f32 + (30.0 * (rng.gen_range(0.1..1.0)))) % 360.0).to_radians();
         let pos = vec2(spawn_point.x + r * rot.sin(), spawn_point.y - r * rot.cos());
-        let vel = pos * ASTEROID_VEL / 20.0 / size;
-        let points = create_polygon(vec2(0.0, 0.0), 8, size * scl);
+        let vel: Vec2 = if is_debris {
+            vec2(
+                pos.x * rot.sin() * ASTEROID_VEL / 10.0 * rng.gen_range(0.5..1.0) / size,
+                pos.y * rot.cos() * ASTEROID_VEL / 10.0 * rng.gen_range(0.1..1.0) / size,
+            )
+        } else {
+            pos * ASTEROID_VEL / 20.0 / size
+        };
+        let point_amount = if is_debris { 3 } else { 8 };
+        let points = create_polygon(vec2(0.0, 0.0), point_amount, size * scl);
         let w = points[0].distance(points[(points.len() / 2) as usize]);
         let a = Asteroid {
             pos,
@@ -283,6 +305,14 @@ fn update(gs: &mut GameState) {
                 new_vel.y = clamp(gs.player.vel.y + (FRICT * delta), gs.player.vel.y, 0.0);
             };
             gs.player.vel = new_vel;
+
+            // update debris
+            for debris in gs.debris.iter_mut() {
+                for a in debris.asteroids.iter_mut() {
+                    a.pos += a.vel * delta;
+                    a.angle = (a.angle + 6.0 / a.size) % 360.0;
+                }
+            }
 
             // update asteroids
             let mut player_collision = false;
@@ -350,6 +380,7 @@ fn update(gs: &mut GameState) {
             }
             gs.bullets
                 .retain(|b| time - b.created_at < BULLET_LIVE_TIME && !b.collision);
+            gs.debris.retain(|d| time - d.time < DEBRIS_LIVE_TIME);
 
             let mut new_asteroids = Vec::new();
             gs.asteroids.retain(|a| {
@@ -360,7 +391,19 @@ fn update(gs: &mut GameState) {
                         a.size as i32,
                         a.size - 1.0,
                         gs.scl,
+                        false,
                     ));
+                    gs.debris.push(Debris {
+                        time: time,
+                        asteroids: spawn_asteroids(
+                            a.pos,
+                            a.w / 2.0,
+                            (a.size * 3.0) as i32,
+                            a.size - 1.0,
+                            gs.scl / 4.0,
+                            true,
+                        ),
+                    })
                 }
 
                 !a.collision
@@ -449,6 +492,15 @@ fn draw_ui(gs: &GameState) {
     }
 }
 
+fn draw_asteroid(a: &Asteroid) {
+    let p = a.get_points();
+    for i in 0..=(p.len() - 1) {
+        let p1 = p[i];
+        let p2 = p[(i + 1) % p.len()];
+        draw_line(p1.x, p1.y, p2.x, p2.y, 1.0, WHITE);
+    }
+}
+
 fn draw(gs: &GameState) {
     clear_background(BLACK);
 
@@ -461,11 +513,12 @@ fn draw(gs: &GameState) {
             }
 
             for asteroid in gs.asteroids.iter() {
-                let p = asteroid.get_points();
-                for i in 0..=(p.len() - 1) {
-                    let p1 = p[i];
-                    let p2 = p[(i + 1) % p.len()];
-                    draw_line(p1.x, p1.y, p2.x, p2.y, 1.0, WHITE);
+                draw_asteroid(&asteroid);
+            }
+
+            for debris in gs.debris.iter() {
+                for debris_obj in debris.asteroids.iter() {
+                    draw_asteroid(&debris_obj)
                 }
             }
 
@@ -599,7 +652,9 @@ fn get_new_game_state() -> GameState {
             3,
             ASTEROID_MAX_SIZE,
             scale,
+            false,
         ),
+        debris: Vec::new(),
         bullets: Vec::new(),
         lives: MAX_PLAYER_LIVES,
         play_time: 0.0,
