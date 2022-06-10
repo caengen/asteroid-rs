@@ -13,9 +13,9 @@ const PLAYER_WIDTH: f32 = 1.0;
 const PLAYER_HEIGHT: f32 = 1.0;
 const PLAYER_ACCL: f32 = 5.0;
 const ANGLE_STEP: f32 = 5.0;
-const BULLET_WIDTH: f32 = 4.0;
+const BULLET_WIDTH: f32 = 0.1;
 const BULLET_VEL: f32 = 300.0;
-const BULLET_LIVE_TIME: f64 = 1.0; // in seconds
+const BULLET_LIVE_TIME: f64 = 1.5; // in seconds
 const TURRET_COOLDOWN: f64 = 0.5; // in seconds
 const GAME_TIME: f32 = 100.0; // in seconds
 
@@ -450,7 +450,12 @@ fn draw(gs: &GameState) {
             draw_spaceship(&gs.player, gs.scl, gs.debug);
 
             for bullet in gs.bullets.iter() {
-                draw_circle(bullet.pos.x, bullet.pos.y, BULLET_WIDTH / 2.0, WHITE)
+                draw_circle(
+                    bullet.pos.x,
+                    bullet.pos.y,
+                    BULLET_WIDTH / 2.0 * gs.scl,
+                    WHITE,
+                )
             }
 
             for asteroid in gs.asteroids.iter() {
