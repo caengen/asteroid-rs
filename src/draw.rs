@@ -1,9 +1,11 @@
+use crate::components::EXPLOSION_LIVE_TIME;
+
 use super::{
     gui, GameState, RunState, Spaceship, BULLET_WIDTH, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT,
 };
 use macroquad::prelude::{
-    clear_background, draw_circle, draw_line, draw_text, draw_triangle, get_fps, measure_text,
-    screen_height, screen_width, BLACK, GREEN, WHITE,
+    clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
+    get_fps, get_time, measure_text, screen_height, screen_width, BLACK, GREEN, WHITE,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
@@ -44,6 +46,17 @@ pub fn draw(gs: &GameState) {
     match gs.run_state {
         RunState::Running | RunState::Death => {
             draw_spaceship(&gs.player, gs.scl, gs.debug);
+
+            for e in gs.explosions.iter() {
+                draw_rectangle_lines(
+                    e.pos.x,
+                    e.pos.y,
+                    e.size,
+                    e.size,
+                    150.0 - 150.0 * ((get_time() - e.created_at) / EXPLOSION_LIVE_TIME) as f32,
+                    WHITE,
+                );
+            }
 
             for bullet in gs.bullets.iter() {
                 draw_circle(

@@ -1,5 +1,5 @@
 use super::spawner;
-use macroquad::prelude::{screen_height, screen_width, vec2, Vec2};
+use macroquad::prelude::{get_time, screen_height, screen_width, vec2, Vec2};
 
 pub const FONT_SIZE: f32 = 20.0;
 pub const SCREEN_WIDTH: f32 = 800.0;
@@ -19,7 +19,8 @@ pub const BULLET_VEL: f32 = 300.0;
 pub const BULLET_LIVE_TIME: f64 = 1.5; // in seconds
 pub const TURRET_COOLDOWN: f64 = 0.5; // in seconds
 pub const EXHAUST_COOLDOWN: f64 = 0.2; // in seconds
-pub const EXHAUST_LIVE_TIME: f64 = 5.0; // in seconds
+pub const EXHAUST_LIVE_TIME: f64 = 2.0; // in seconds
+pub const EXPLOSION_LIVE_TIME: f64 = 0.5; // in seconds
 pub const GAME_TIME: f32 = 100.0; // in seconds
 
 #[derive(PartialEq)]
@@ -28,6 +29,22 @@ pub enum RunState {
     Running,
     Death,
     GameOver,
+}
+
+pub struct Explosion {
+    pub pos: Vec2,
+    pub size: f32,
+    pub created_at: f64,
+}
+
+impl Explosion {
+    pub fn new(x: f32, y: f32, size: f32) -> Self {
+        Explosion {
+            pos: vec2(x, y),
+            size,
+            created_at: get_time(),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -134,6 +151,7 @@ pub struct GameState {
     pub scl: f32, // scale
     pub player: Spaceship,
     pub exhaust: Vec<Exhaust>,
+    pub explosions: Vec<Explosion>,
     pub bullets: Vec<Bullet>,
     pub asteroids: Vec<Asteroid>,
     pub lives: i32,
@@ -159,6 +177,7 @@ pub fn get_new_game_state() -> GameState {
             scale,
         ),
         bullets: Vec::new(),
+        explosions: Vec::new(),
         exhaust: Vec::new(),
         lives: MAX_PLAYER_LIVES,
         play_time: 0.0,

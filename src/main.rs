@@ -111,14 +111,21 @@ fn update(gs: &mut GameState) {
 
             let mut new_asteroids = Vec::new();
             gs.asteroids.retain(|a| {
-                if a.collision && a.size > 1.0 {
-                    new_asteroids.append(&mut spawner::asteroids(
-                        a.pos,
-                        a.w / 4.0,
-                        a.size as i32,
-                        a.size - 1.0,
-                        gs.scl,
+                if a.collision {
+                    gs.explosions.push(Explosion::new(
+                        a.pos.x - a.w / 2.0,
+                        a.pos.y - a.w / 2.0,
+                        a.w * 0.75,
                     ));
+                    if a.size > 1.0 {
+                        new_asteroids.append(&mut spawner::asteroids(
+                            a.pos,
+                            a.w / 4.0,
+                            a.size as i32,
+                            a.size - 1.0,
+                            gs.scl,
+                        ));
+                    }
                 }
 
                 !a.collision
@@ -126,6 +133,9 @@ fn update(gs: &mut GameState) {
             if new_asteroids.len() > 0 {
                 gs.asteroids.append(&mut new_asteroids);
             }
+
+            gs.explosions
+                .retain(|e| time - e.created_at < EXPLOSION_LIVE_TIME);
 
             if gs.asteroids.len() == 0 {
                 gs.run_state = RunState::GameOver;
