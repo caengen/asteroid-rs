@@ -51,8 +51,8 @@ pub fn handle_input(gs: &mut GameState) {
                             pos: pos.add(diff * factor),
                             size: 0.5 * s,
                             vel: vec2(
-                                -(BULLET_VEL / 3.0 * rotation.sin()),
-                                BULLET_VEL / 3.0 * rotation.cos(),
+                                -(BULLET_VEL / 6.0 * rotation.sin()),
+                                BULLET_VEL / 6.0 * rotation.cos(),
                             )
                             .add(diff),
                         });
