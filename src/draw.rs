@@ -1,4 +1,4 @@
-use crate::components::EXPLOSION_LIVE_TIME;
+use crate::components::{ASTEROID_MAX_SIZE, EXPLOSION_LIVE_TIME};
 
 use super::{
     gui, GameState, RunState, Spaceship, BULLET_WIDTH, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT,
@@ -48,12 +48,14 @@ pub fn draw(gs: &GameState) {
             draw_spaceship(&gs.player, gs.scl, gs.debug);
 
             for e in gs.explosions.iter() {
+                let thickness = 150.0 * e.size / ASTEROID_MAX_SIZE;
                 draw_rectangle_lines(
                     e.pos.x,
                     e.pos.y,
-                    e.size,
-                    e.size,
-                    150.0 - 150.0 * ((get_time() - e.created_at) / EXPLOSION_LIVE_TIME) as f32,
+                    e.width,
+                    e.width,
+                    thickness
+                        - thickness * ((get_time() - e.created_at) / EXPLOSION_LIVE_TIME) as f32,
                     WHITE,
                 );
             }

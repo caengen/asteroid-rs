@@ -33,14 +33,16 @@ pub enum RunState {
 
 pub struct Explosion {
     pub pos: Vec2,
+    pub width: f32,
     pub size: f32,
     pub created_at: f64,
 }
 
 impl Explosion {
-    pub fn new(x: f32, y: f32, size: f32) -> Self {
+    pub fn new(x: f32, y: f32, width: f32, size: f32) -> Self {
         Explosion {
             pos: vec2(x, y),
+            width,
             size,
             created_at: get_time(),
         }

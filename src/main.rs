@@ -116,6 +116,7 @@ fn update(gs: &mut GameState) {
                         a.pos.x - a.w / 2.0,
                         a.pos.y - a.w / 2.0,
                         a.w * 0.75,
+                        a.size,
                     ));
                     if a.size > 1.0 {
                         new_asteroids.append(&mut spawner::asteroids(
