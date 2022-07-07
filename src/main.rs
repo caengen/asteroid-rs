@@ -2,6 +2,7 @@ use macroquad::prelude::*;
 mod components;
 use components::*;
 mod draw;
+mod gui;
 use draw::*;
 mod input;
 mod spawner;
@@ -45,8 +46,8 @@ fn update(gs: &mut GameState) {
 
                 // check for collisions with player
                 if gs.run_state == RunState::Running {
-                    let p1 = gs.player.get_points(gs.scl);
-                    let p2 = asteroid.get_points();
+                    let p1 = gs.player.points(gs.scl);
+                    let p2 = asteroid.points();
                     for i in 0..3 {
                         let a = p1[i];
                         let b = p1[(i + 1) % 3];
@@ -70,6 +71,14 @@ fn update(gs: &mut GameState) {
                 }
             }
 
+            //update particles
+            for ex in gs.exhaust.iter_mut() {
+                ex.pos += ex.vel * delta;
+                ex.size = f32::max(ex.size - 0.5 * delta, 0.0);
+            }
+            gs.exhaust
+                .retain(|e| time - e.created_at < EXHAUST_LIVE_TIME || e.size <= 0.0);
+
             // update bullets
             for bullet in gs.bullets.iter_mut() {
                 let a = bullet.pos;
@@ -82,7 +91,7 @@ fn update(gs: &mut GameState) {
 
                 // check for collisions
                 for ast in gs.asteroids.iter_mut() {
-                    let p = ast.get_points();
+                    let p = ast.points();
                     for i in 0..p.len() {
                         if intersects(a, b, p[i], p[(i + 1) % p.len()]) {
                             bullet.collision = true;

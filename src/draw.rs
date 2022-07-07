@@ -1,20 +1,19 @@
 use super::{
-    GameState, RunState, Spaceship, BULLET_WIDTH, FONT_SIZE, GAME_TIME, MAX_PLAYER_LIVES,
-    PLAYER_HEIGHT, PLAYER_WIDTH,
+    gui, GameState, RunState, Spaceship, BULLET_WIDTH, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT,
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_text, draw_triangle, get_fps, measure_text,
-    screen_height, screen_width, vec2, BLACK, GREEN, WHITE,
+    screen_height, screen_width, BLACK, GREEN, WHITE,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
     let Spaceship { pos, vel, .. } = ship;
 
-    let p = ship.get_points(scl);
+    let p = ship.points(scl);
 
     draw_triangle(p[0], p[1], p[2], WHITE);
-    draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 1.0, WHITE);
-    draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 1.0, WHITE);
+    draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 2.0, WHITE);
+    draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 2.0, WHITE);
 
     // draw_circle(pos.x, pos.y, 0.1 * scl, RED);
 
@@ -39,43 +38,6 @@ pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
     }
 }
 
-pub fn draw_ui(gs: &GameState) {
-    draw_text("SCORE", 20.0, 20.0, FONT_SIZE, WHITE);
-    draw_text(&gs.score.to_string(), 20.0, 35.0, FONT_SIZE + 5.0, WHITE);
-
-    draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, WHITE);
-    draw_text(
-        &((GAME_TIME - gs.play_time) as i8).to_string(),
-        screen_width() / 2.0 - 10.0,
-        35.0,
-        FONT_SIZE + 5.0,
-        WHITE,
-    );
-    draw_text(
-        "LIVES",
-        screen_width() - (PLAYER_WIDTH * gs.scl) * MAX_PLAYER_LIVES as f32,
-        20.0,
-        FONT_SIZE,
-        WHITE,
-    );
-    let mut mock = Spaceship {
-        w: PLAYER_WIDTH / 2.0,
-        h: PLAYER_HEIGHT / 2.0,
-        pos: vec2(0.0, 0.0),
-        angle: 0.0,
-        vel: vec2(0.0, 0.0),
-        last_turret_frame: 0.0,
-    };
-    for i in 0..gs.lives {
-        mock.pos = vec2(
-            screen_width() - PLAYER_WIDTH * gs.scl * MAX_PLAYER_LIVES as f32
-                + (PLAYER_WIDTH * gs.scl * i as f32),
-            35.0,
-        );
-        draw_spaceship(&mock, gs.scl, gs.debug)
-    }
-}
-
 pub fn draw(gs: &GameState) {
     clear_background(BLACK);
 
@@ -92,8 +54,27 @@ pub fn draw(gs: &GameState) {
                 )
             }
 
+            for ex in gs.exhaust.iter() {
+                draw_line(
+                    ex.pos.x - (ex.size / 2.0) * gs.scl,
+                    ex.pos.y,
+                    ex.pos.x + (ex.size / 2.0) * gs.scl,
+                    ex.pos.y,
+                    2.0,
+                    WHITE,
+                );
+                draw_line(
+                    ex.pos.x,
+                    ex.pos.y - (ex.size / 2.0) * gs.scl,
+                    ex.pos.x,
+                    ex.pos.y + (ex.size / 2.0) * gs.scl,
+                    2.0,
+                    WHITE,
+                );
+            }
+
             for asteroid in gs.asteroids.iter() {
-                let p = asteroid.get_points();
+                let p = asteroid.points();
                 for i in 0..=(p.len() - 1) {
                     let p1 = p[i];
                     let p2 = p[(i + 1) % p.len()];
@@ -101,7 +82,7 @@ pub fn draw(gs: &GameState) {
                 }
             }
 
-            draw_ui(&gs);
+            gui::draw(&gs);
 
             if gs.run_state == RunState::Death {
                 let text = "Press Space to start.";
@@ -155,6 +136,13 @@ pub fn draw(gs: &GameState) {
                     &format!("Asteroid count: {}", gs.asteroids.len()),
                     10.0,
                     100.0,
+                    FONT_SIZE - 5.0,
+                    WHITE,
+                );
+                draw_text(
+                    &format!("Exhaust count: {}", gs.exhaust.len()),
+                    10.0,
+                    110.0,
                     FONT_SIZE - 5.0,
                     WHITE,
                 );

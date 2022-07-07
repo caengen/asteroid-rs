@@ -12,12 +12,14 @@ pub const UNITS: f32 = 16.0;
 pub const MAX_PLAYER_LIVES: i32 = 3;
 pub const PLAYER_WIDTH: f32 = 1.0;
 pub const PLAYER_HEIGHT: f32 = 1.0;
-pub const PLAYER_ACCL: f32 = 5.0;
+pub const PLAYER_ACCL: f32 = 10.0;
 pub const ANGLE_STEP: f32 = 5.0;
 pub const BULLET_WIDTH: f32 = 0.1;
 pub const BULLET_VEL: f32 = 300.0;
 pub const BULLET_LIVE_TIME: f64 = 1.5; // in seconds
 pub const TURRET_COOLDOWN: f64 = 0.5; // in seconds
+pub const EXHAUST_COOLDOWN: f64 = 0.2; // in seconds
+pub const EXHAUST_LIVE_TIME: f64 = 5.0; // in seconds
 pub const GAME_TIME: f32 = 100.0; // in seconds
 
 #[derive(PartialEq)]
@@ -40,7 +42,7 @@ pub struct Asteroid {
 }
 
 impl Asteroid {
-    pub fn get_points(&self) -> Vec<Vec2> {
+    pub fn points(&self) -> Vec<Vec2> {
         let rot = self.angle.to_radians();
         let c = rot.cos();
         let s = rot.sin();
@@ -54,6 +56,13 @@ impl Asteroid {
 
         points
     }
+}
+
+pub struct Exhaust {
+    pub pos: Vec2,
+    pub created_at: f64,
+    pub vel: Vec2,
+    pub size: f32,
 }
 
 pub struct Bullet {
@@ -70,16 +79,28 @@ pub struct Spaceship {
     pub angle: f32,
     pub vel: Vec2,
     pub last_turret_frame: f64,
+    pub last_exhaust_frame: f64,
 }
 
 impl Spaceship {
+    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
+        Spaceship {
+            w,
+            h,
+            pos: vec2(x, y),
+            angle: 0.0,
+            vel: vec2(0.0, 0.0),
+            last_turret_frame: 0.0,
+            last_exhaust_frame: 0.0,
+        }
+    }
     pub fn reset(&mut self) {
         self.vel = vec2(0.0, 0.0);
         self.angle = 0.0;
         self.pos = vec2(screen_width() / 2.0, screen_height() / 2.0);
     }
 
-    pub fn get_points(&self, scale: f32) -> Vec<Vec2> {
+    pub fn points(&self, scale: f32) -> Vec<Vec2> {
         let rot = self.angle.to_radians();
         let sh = self.h * scale; // ship height
         let sw = self.w * scale; // ship width
@@ -112,6 +133,7 @@ impl Spaceship {
 pub struct GameState {
     pub scl: f32, // scale
     pub player: Spaceship,
+    pub exhaust: Vec<Exhaust>,
     pub bullets: Vec<Bullet>,
     pub asteroids: Vec<Asteroid>,
     pub lives: i32,
@@ -128,14 +150,7 @@ pub fn get_new_game_state() -> GameState {
     let gs = GameState {
         run_state: RunState::Running,
         scl: scale,
-        player: Spaceship {
-            w: PLAYER_WIDTH,
-            h: PLAYER_HEIGHT,
-            pos: center_pos,
-            angle: 0.0,
-            vel: vec2(0.0, 0.0),
-            last_turret_frame: 0.0,
-        },
+        player: Spaceship::new(center_pos.x, center_pos.y, PLAYER_WIDTH, PLAYER_HEIGHT),
         asteroids: spawner::asteroids(
             center_pos,
             screen_width() / ASTEROID_MAX_SIZE,
@@ -144,6 +159,7 @@ pub fn get_new_game_state() -> GameState {
             scale,
         ),
         bullets: Vec::new(),
+        exhaust: Vec::new(),
         lives: MAX_PLAYER_LIVES,
         play_time: 0.0,
         score: 0,
