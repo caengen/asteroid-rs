@@ -1,29 +1,42 @@
 use super::spawner;
-use macroquad::prelude::{get_time, screen_height, screen_width, vec2, Vec2};
+use macroquad::{
+    color_u8,
+    prelude::{get_time, screen_height, screen_width, vec2, Color, Vec2},
+};
 
-pub const FONT_SIZE: f32 = 20.0;
-pub const SCREEN_WIDTH: f32 = 800.0;
-pub const SCREEN_HEIGHT: f32 = 600.0;
-pub const ASTEROID_MAX_SIZE: f32 = 3.0;
-pub const ASTEROID_VEL: f32 = 6.0;
-pub const FRICT: f32 = 0.75;
-//pub const UNITS: f32 = 32.0;
+// vertical scale units. Screen height is 1:16
 pub const UNITS: f32 = 16.0;
-pub const MAX_PLAYER_LIVES: i32 = 3;
+
+//colors
+pub const BG_COLOR: Color = color_u8!(49, 47, 40, 1);
+
+//dimensions
+pub const FONT_SIZE: f32 = 20.0;
+pub const SCREEN_WIDTH: f32 = 400.0;
+pub const SCREEN_HEIGHT: f32 = 300.0;
+pub const ASTEROID_MAX_SIZE: f32 = 3.0;
 pub const PLAYER_WIDTH: f32 = 1.0;
 pub const PLAYER_HEIGHT: f32 = 1.0;
+pub const BULLET_WIDTH: f32 = 0.1;
+
+//velocity
 pub const PLAYER_ACCL: f32 = 7.5;
 pub const PLAYER_MAX_VEL: f32 = 25.0;
-pub const ANGLE_STEP: f32 = 4.0;
-pub const BULLET_WIDTH: f32 = 0.1;
 pub const BULLET_VEL: f32 = 600.0;
+pub const EXHAUST_VEL: f32 = 150.0;
+pub const ASTEROID_VEL: f32 = 6.0;
+pub const FRICT: f32 = 0.75;
+pub const ANGLE_STEP: f32 = 4.0;
+
+//time
 pub const BULLET_LIVE_TIME: f64 = 0.75; // in seconds
 pub const TURRET_COOLDOWN: f64 = 0.5; // in seconds
 pub const EXHAUST_COOLDOWN: f64 = 0.175; // in seconds
 pub const EXHAUST_LIVE_TIME: f64 = 2.0; // in seconds
-pub const EXHAUST_VEL: f32 = 150.0;
-pub const EXPLOSION_LIVE_TIME: f64 = 1.0; // in seconds
+pub const EXPLOSION_LIVE_TIME: f64 = 0.333; // in seconds
 pub const GAME_TIME: f32 = 100.0; // in seconds
+
+pub const MAX_PLAYER_LIVES: i32 = 3;
 
 #[derive(PartialEq)]
 pub enum RunState {
@@ -167,7 +180,7 @@ pub struct GameState {
 
 pub fn get_new_game_state() -> GameState {
     let scale = screen_height() / UNITS;
-    let center_pos = vec2(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0);
+    let center_pos = vec2(screen_width() / 2.0, screen_height() / 2.0);
 
     let gs = GameState {
         run_state: RunState::Running,

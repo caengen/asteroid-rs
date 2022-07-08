@@ -100,7 +100,7 @@ fn update(gs: &mut GameState) {
                     }
 
                     if bullet.collision {
-                        gs.score += (6.0 / ast.size * GAME_TIME / gs.play_time) as i32;
+                        gs.score += 1 * ast.size as i32;
                         ast.collision = true;
                         break;
                     }

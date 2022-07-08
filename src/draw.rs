@@ -1,7 +1,6 @@
-use crate::components::{ASTEROID_MAX_SIZE, EXPLOSION_LIVE_TIME};
-
 use super::{
-    gui, GameState, RunState, Spaceship, BULLET_WIDTH, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT,
+    gui, GameState, RunState, Spaceship, ASTEROID_MAX_SIZE, BG_COLOR, BULLET_WIDTH,
+    EXPLOSION_LIVE_TIME, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT,
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
@@ -16,8 +15,6 @@ pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
     draw_triangle(p[0], p[1], p[2], WHITE);
     draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 2.0, WHITE);
     draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 2.0, WHITE);
-
-    // draw_circle(pos.x, pos.y, 0.1 * scl, RED);
 
     if debug {
         draw_line(
@@ -41,7 +38,7 @@ pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
 }
 
 pub fn draw(gs: &GameState) {
-    clear_background(BLACK);
+    clear_background(BG_COLOR);
 
     match gs.run_state {
         RunState::Running | RunState::Death => {
@@ -93,7 +90,7 @@ pub fn draw(gs: &GameState) {
                 for i in 0..=(p.len() - 1) {
                     let p1 = p[i];
                     let p2 = p[(i + 1) % p.len()];
-                    draw_line(p1.x, p1.y, p2.x, p2.y, 1.0, WHITE);
+                    draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, WHITE);
                 }
             }
 
