@@ -38,7 +38,7 @@ pub const GAME_TIME: f32 = 100.0;
 pub const COMBO_TIMER: f32 = 3.0;
 
 pub const MAX_PLAYER_LIVES: i32 = 3;
-pub const SCORE_BASE: i32 = 15;
+pub const SCORE_BASE: i32 = 16;
 
 #[derive(PartialEq)]
 pub enum RunState {

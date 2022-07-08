@@ -4,7 +4,8 @@ use super::{
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
-    get_fps, get_time, measure_text, screen_height, screen_width, BLACK, GREEN, LIGHTGRAY, WHITE,
+    get_fps, get_time, measure_text, screen_height, screen_width, BLACK, GRAY, GREEN, LIGHTGRAY,
+    WHITE,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
@@ -90,6 +91,7 @@ pub fn draw(gs: &GameState) {
                 for i in 0..=(p.len() - 1) {
                     let p1 = p[i];
                     let p2 = p[(i + 1) % p.len()];
+                    draw_triangle(p1, p2, asteroid.pos, BG_COLOR);
                     draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, WHITE);
                 }
             }
