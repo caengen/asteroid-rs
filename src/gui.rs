@@ -121,19 +121,14 @@ pub fn draw(gs: &GameState) {
         FONT_SIZE + 5.0,
         WHITE,
     );
-    draw_text(
-        "LIVES",
-        screen_width() - (PLAYER_WIDTH * gs.scl) * MAX_PLAYER_LIVES as f32,
-        20.0,
-        FONT_SIZE,
-        WHITE,
-    );
+
     let mut mock = Spaceship::new(0.0, 0.0, PLAYER_WIDTH / 2., PLAYER_HEIGHT / 2.);
     for i in 0..gs.lives {
         mock.pos = vec2(
-            screen_width() - PLAYER_WIDTH * gs.scl * MAX_PLAYER_LIVES as f32
+            ((screen_width() / 1.25) + PLAYER_WIDTH * gs.scl)
+                - PLAYER_WIDTH * gs.scl * MAX_PLAYER_LIVES as f32
                 + (PLAYER_WIDTH * gs.scl * i as f32),
-            35.0,
+            screen_height() - PLAYER_WIDTH * gs.scl / 1.25,
         );
         draw_spaceship(&mock, gs.scl, gs.debug)
     }
