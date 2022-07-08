@@ -1,11 +1,11 @@
 use super::{
     gui, GameState, RunState, Spaceship, ASTEROID_MAX_SIZE, BG_COLOR, BULLET_WIDTH,
-    EXPLOSION_LIVE_TIME, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT,
+    EXPLOSION_LIVE_TIME, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT, POINT_FONT_SIZE,
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
     get_fps, get_time, measure_text, screen_height, screen_width, Color, BLACK, GRAY, GREEN,
-    LIGHTGRAY, WHITE,
+    LIGHTGRAY, RED, WHITE,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
@@ -153,6 +153,18 @@ pub fn draw(gs: &GameState) {
                     draw_triangle(p1, p2, asteroid.pos, Color::from_rgba(49, 47, 40, 0));
                     draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, WHITE);
                 }
+            }
+
+            for point in gs.flying_points.iter() {
+                let text = &format!("{}", point.val);
+                let text_measure = measure_text(text, None, POINT_FONT_SIZE as _, 1.0);
+                draw_text(
+                    text,
+                    point.pos.x - text_measure.width / 2.0,
+                    point.pos.y - text_measure.height / 2.0,
+                    POINT_FONT_SIZE,
+                    WHITE,
+                );
             }
 
             gui::draw(&gs);

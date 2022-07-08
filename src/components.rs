@@ -1,7 +1,7 @@
 use super::spawner;
 use macroquad::{
     color_u8,
-    prelude::{get_time, rand, screen_height, screen_width, vec2, Color, Vec2},
+    prelude::{const_vec2, get_time, rand, screen_height, screen_width, vec2, Color, Vec2},
 };
 
 // vertical scale units. Screen height is 1:16
@@ -11,6 +11,7 @@ pub const UNITS: f32 = 16.0;
 pub const BG_COLOR: Color = color_u8!(49, 47, 40, 1);
 
 //dimensions
+pub const POINT_FONT_SIZE: f32 = 40.0;
 pub const FONT_SIZE: f32 = 20.0;
 pub const SCREEN_WIDTH: f32 = 400.0;
 pub const SCREEN_HEIGHT: f32 = 300.0;
@@ -20,6 +21,7 @@ pub const PLAYER_HEIGHT: f32 = 1.0;
 pub const BULLET_WIDTH: f32 = 0.1;
 
 //velocity
+pub const GRAVITY: Vec2 = const_vec2!([0.0, 9.81]);
 pub const PLAYER_ACCL: f32 = 7.5;
 pub const PLAYER_MAX_VEL: f32 = 25.0;
 pub const BULLET_VEL: f32 = 600.0;
@@ -34,6 +36,7 @@ pub const TURRET_COOLDOWN: f64 = 0.5;
 pub const EXHAUST_COOLDOWN: f64 = 0.175;
 pub const EXHAUST_LIVE_TIME: f64 = 2.0;
 pub const EXPLOSION_LIVE_TIME: f64 = 0.333;
+pub const FLYING_POINT_LIVE_TIME: f64 = 0.666;
 pub const GAME_TIME: f32 = 100.0;
 pub const COMBO_TIMER: f32 = 3.0;
 
@@ -48,6 +51,12 @@ pub enum RunState {
     GameOver,
 }
 
+pub struct FlyingPoint {
+    pub pos: Vec2,
+    pub vel: Vec2,
+    pub val: i32,
+    pub created_at: f64,
+}
 pub struct Explosion {
     pub pos: Vec2,
     pub width: f32,
@@ -174,6 +183,7 @@ impl Spaceship {
 pub struct GameState {
     pub scl: f32, // scale
     pub player: Spaceship,
+    pub flying_points: Vec<FlyingPoint>,
     pub background: Vec<Star>,
     pub exhaust: Vec<Exhaust>,
     pub explosions: Vec<Explosion>,
@@ -194,10 +204,6 @@ pub fn get_new_game_state() -> GameState {
     let center_pos = vec2(screen_width() / 2.0, screen_height() / 2.0);
 
     let gs = GameState {
-        run_state: RunState::Running,
-        scl: scale,
-        player: Spaceship::new(center_pos.x, center_pos.y, PLAYER_WIDTH, PLAYER_HEIGHT),
-        background: spawner::stars(50, screen_width(), screen_height()),
         asteroids: spawner::asteroids(
             center_pos,
             screen_width() / ASTEROID_MAX_SIZE,
@@ -205,16 +211,21 @@ pub fn get_new_game_state() -> GameState {
             ASTEROID_MAX_SIZE,
             scale,
         ),
+        background: spawner::stars(50, screen_width(), screen_height()),
         bullets: Vec::new(),
-        explosions: Vec::new(),
+        combo: 0,
+        combo_time: 0.0,
+        debug: false,
         exhaust: Vec::new(),
+        explosions: Vec::new(),
+        flying_points: Vec::new(),
         lives: MAX_PLAYER_LIVES,
         play_time: 0.0,
-        combo_time: 0.0,
-        combo: 0,
-        score_multiplier: 1,
+        player: Spaceship::new(center_pos.x, center_pos.y, PLAYER_WIDTH, PLAYER_HEIGHT),
+        run_state: RunState::Running,
+        scl: scale,
         score: 0,
-        debug: false,
+        score_multiplier: 1,
     };
 
     gs

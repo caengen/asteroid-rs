@@ -1,15 +1,11 @@
 use crate::components::COMBO_TIMER;
 
 use super::{
-    draw_spaceship, GameState, Spaceship, FONT_SIZE, GAME_TIME, MAX_PLAYER_LIVES, PLAYER_HEIGHT,
-    PLAYER_WIDTH,
+    draw_spaceship, GameState, Spaceship, GAME_TIME, MAX_PLAYER_LIVES, PLAYER_HEIGHT, PLAYER_WIDTH,
 };
-use macroquad::{
-    color_u8,
-    prelude::{
-        draw_rectangle, draw_text, draw_triangle, measure_text, screen_height, screen_width, vec2,
-        Color, BLACK, GRAY, RED, WHITE,
-    },
+use macroquad::prelude::{
+    draw_rectangle, draw_text, draw_triangle, measure_text, screen_height, screen_width, vec2,
+    BLACK, GRAY, WHITE,
 };
 
 pub const GUI_BAR_HEIGHT: f32 = 50.0;

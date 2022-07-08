@@ -85,6 +85,11 @@ fn update(gs: &mut GameState) {
             gs.exhaust
                 .retain(|e| time - e.created_at < EXHAUST_LIVE_TIME || e.size <= 0.0);
 
+            for point in gs.flying_points.iter_mut() {
+                point.vel += GRAVITY;
+                point.pos += point.vel * delta;
+            }
+
             // update bullets
             for bullet in gs.bullets.iter_mut() {
                 let a = bullet.pos;
@@ -112,14 +117,25 @@ fn update(gs: &mut GameState) {
                             gs.score_multiplier += 1;
                         }
 
-                        gs.score += SCORE_BASE * ast.size as i32 * gs.score_multiplier;
+                        let collision_score = SCORE_BASE * ast.size as i32 * gs.score_multiplier;
+                        gs.score += collision_score;
                         ast.collision = true;
+
+                        gs.flying_points.push(FlyingPoint {
+                            created_at: time,
+                            pos: bullet.pos,
+                            vel: bullet.vel / 2.0,
+                            val: collision_score,
+                        });
                         break;
                     }
                 }
             }
             gs.bullets
                 .retain(|b| time - b.created_at < BULLET_LIVE_TIME && !b.collision);
+
+            gs.flying_points
+                .retain(|f| time - f.created_at < FLYING_POINT_LIVE_TIME);
 
             let mut new_asteroids = Vec::new();
             gs.asteroids.retain(|a| {
