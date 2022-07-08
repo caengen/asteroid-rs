@@ -164,7 +164,6 @@ fn update(gs: &mut GameState) {
 #[macroquad::main("asteroids.rs")]
 async fn main() {
     request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
-    rand::srand(macroquad::miniquad::date::now() as _);
     let mut gs = get_new_game_state();
 
     loop {

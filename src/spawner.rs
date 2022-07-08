@@ -1,7 +1,10 @@
 use super::{
-    Asteroid, Exhaust, GameState, ASTEROID_VEL, BULLET_VEL, EXHAUST_COOLDOWN, PLAYER_WIDTH,
+    Asteroid, Exhaust, GameState, Star, ASTEROID_VEL, BULLET_VEL, EXHAUST_COOLDOWN, PLAYER_WIDTH,
 };
-use macroquad::prelude::{get_time, rand, vec2, Vec2};
+use macroquad::{
+    prelude::{get_time, rand, vec2, Vec2},
+    rand::{srand, RandomRange},
+};
 use std::ops::Add;
 
 pub fn polygon(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
@@ -75,4 +78,28 @@ pub fn exhaust_particles(gs: &mut GameState, vel: f32, rotation: f32, h: f32) {
         });
     }
     gs.player.last_exhaust_frame = time;
+}
+
+pub fn stars(amount: i32, map_width: f32, map_height: f32) -> Vec<Star> {
+    srand(421337421337);
+    let mut stars = Vec::new();
+    for _i in 0..amount {
+        let sr = rand::gen_range(1, 10);
+        let size;
+        match sr {
+            1 => size = 3.0,
+            2 | 3 | 4 => size = 2.0,
+            _ => size = 1.0,
+        }
+        stars.push(Star {
+            pos: vec2(
+                rand::gen_range(0.0, map_width),
+                rand::gen_range(0.0, map_height),
+            ),
+            size,
+        });
+    }
+    rand::srand(macroquad::miniquad::date::now() as _);
+
+    stars
 }

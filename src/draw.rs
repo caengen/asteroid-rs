@@ -4,8 +4,8 @@ use super::{
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
-    get_fps, get_time, measure_text, screen_height, screen_width, BLACK, GRAY, GREEN, LIGHTGRAY,
-    WHITE,
+    get_fps, get_time, measure_text, screen_height, screen_width, Color, BLACK, GRAY, GREEN,
+    LIGHTGRAY, WHITE,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
@@ -38,8 +38,67 @@ pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
     }
 }
 
+fn draw_background(gs: &GameState) {
+    for star in gs.background.iter() {
+        draw_circle(star.pos.x, star.pos.y, star.size, LIGHTGRAY);
+    }
+}
+
+fn draw_debug(gs: &GameState) {
+    draw_text(
+        &format!("fps: {}", get_fps()),
+        10.0,
+        50.0,
+        FONT_SIZE - 5.0,
+        WHITE,
+    );
+    draw_text(
+        &format!("Vel: {}", gs.player.vel.to_string()),
+        10.0,
+        60.0,
+        FONT_SIZE - 5.0,
+        WHITE,
+    );
+    draw_text(
+        &format!("Angle: {}", gs.player.angle.to_string()),
+        10.0,
+        70.0,
+        FONT_SIZE - 5.0,
+        WHITE,
+    );
+    draw_text(
+        &format!("W:{}, H:{}", screen_width(), screen_height()),
+        10.0,
+        80.0,
+        FONT_SIZE - 5.0,
+        WHITE,
+    );
+    draw_text(
+        &format!("Player lives: {}", gs.lives),
+        10.0,
+        90.0,
+        FONT_SIZE - 5.0,
+        WHITE,
+    );
+    draw_text(
+        &format!("Asteroid count: {}", gs.asteroids.len()),
+        10.0,
+        100.0,
+        FONT_SIZE - 5.0,
+        WHITE,
+    );
+    draw_text(
+        &format!("Exhaust count: {}", gs.exhaust.len()),
+        10.0,
+        110.0,
+        FONT_SIZE - 5.0,
+        WHITE,
+    );
+}
+
 pub fn draw(gs: &GameState) {
     clear_background(BG_COLOR);
+    draw_background(gs);
 
     match gs.run_state {
         RunState::Running | RunState::Death => {
@@ -91,7 +150,7 @@ pub fn draw(gs: &GameState) {
                 for i in 0..=(p.len() - 1) {
                     let p1 = p[i];
                     let p2 = p[(i + 1) % p.len()];
-                    draw_triangle(p1, p2, asteroid.pos, BG_COLOR);
+                    draw_triangle(p1, p2, asteroid.pos, Color::from_rgba(49, 47, 40, 0));
                     draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, WHITE);
                 }
             }
@@ -111,55 +170,7 @@ pub fn draw(gs: &GameState) {
             }
 
             if gs.debug {
-                draw_text(
-                    &format!("fps: {}", get_fps()),
-                    10.0,
-                    50.0,
-                    FONT_SIZE - 5.0,
-                    WHITE,
-                );
-                draw_text(
-                    &format!("Vel: {}", gs.player.vel.to_string()),
-                    10.0,
-                    60.0,
-                    FONT_SIZE - 5.0,
-                    WHITE,
-                );
-                draw_text(
-                    &format!("Angle: {}", gs.player.angle.to_string()),
-                    10.0,
-                    70.0,
-                    FONT_SIZE - 5.0,
-                    WHITE,
-                );
-                draw_text(
-                    &format!("W:{}, H:{}", screen_width(), screen_height()),
-                    10.0,
-                    80.0,
-                    FONT_SIZE - 5.0,
-                    WHITE,
-                );
-                draw_text(
-                    &format!("Player lives: {}", gs.lives),
-                    10.0,
-                    90.0,
-                    FONT_SIZE - 5.0,
-                    WHITE,
-                );
-                draw_text(
-                    &format!("Asteroid count: {}", gs.asteroids.len()),
-                    10.0,
-                    100.0,
-                    FONT_SIZE - 5.0,
-                    WHITE,
-                );
-                draw_text(
-                    &format!("Exhaust count: {}", gs.exhaust.len()),
-                    10.0,
-                    110.0,
-                    FONT_SIZE - 5.0,
-                    WHITE,
-                );
+                draw_debug(gs);
             }
         }
         RunState::GameOver => {

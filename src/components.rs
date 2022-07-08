@@ -1,7 +1,7 @@
 use super::spawner;
 use macroquad::{
     color_u8,
-    prelude::{get_time, screen_height, screen_width, vec2, Color, Vec2},
+    prelude::{get_time, rand, screen_height, screen_width, vec2, Color, Vec2},
 };
 
 // vertical scale units. Screen height is 1:16
@@ -53,6 +53,11 @@ pub struct Explosion {
     pub width: f32,
     pub size: f32,
     pub created_at: f64,
+}
+
+pub struct Star {
+    pub pos: Vec2,
+    pub size: f32,
 }
 
 impl Explosion {
@@ -169,6 +174,7 @@ impl Spaceship {
 pub struct GameState {
     pub scl: f32, // scale
     pub player: Spaceship,
+    pub background: Vec<Star>,
     pub exhaust: Vec<Exhaust>,
     pub explosions: Vec<Explosion>,
     pub bullets: Vec<Bullet>,
@@ -191,6 +197,7 @@ pub fn get_new_game_state() -> GameState {
         run_state: RunState::Running,
         scl: scale,
         player: Spaceship::new(center_pos.x, center_pos.y, PLAYER_WIDTH, PLAYER_HEIGHT),
+        background: spawner::stars(50, screen_width(), screen_height()),
         asteroids: spawner::asteroids(
             center_pos,
             screen_width() / ASTEROID_MAX_SIZE,
