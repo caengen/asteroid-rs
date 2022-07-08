@@ -17,7 +17,12 @@ fn update(gs: &mut GameState) {
         RunState::Running | RunState::Death => {
             if gs.run_state == RunState::Running {
                 gs.play_time += delta;
-                gs.combo_time -= delta;
+                if gs.combo_time > 0.0 {
+                    gs.combo_time = f32::max(gs.combo_time - delta, 0.0);
+                } else {
+                    gs.combo = 0;
+                    gs.score_multiplier = 1;
+                }
             }
 
             gs.player.pos = gs.player.pos + gs.player.vel;
@@ -101,8 +106,13 @@ fn update(gs: &mut GameState) {
                     }
 
                     if bullet.collision {
-                        gs.score += 1 * ast.size as i32;
                         gs.combo_time = COMBO_TIMER;
+                        gs.combo += 1;
+                        if gs.combo % 5 == 0 {
+                            gs.score_multiplier += 1;
+                        }
+
+                        gs.score += SCORE_BASE * ast.size as i32 * gs.score_multiplier;
                         ast.collision = true;
                         break;
                     }

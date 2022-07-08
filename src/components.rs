@@ -35,9 +35,10 @@ pub const EXHAUST_COOLDOWN: f64 = 0.175;
 pub const EXHAUST_LIVE_TIME: f64 = 2.0;
 pub const EXPLOSION_LIVE_TIME: f64 = 0.333;
 pub const GAME_TIME: f32 = 100.0;
-pub const COMBO_TIMER: f32 = 4.0;
+pub const COMBO_TIMER: f32 = 3.0;
 
 pub const MAX_PLAYER_LIVES: i32 = 3;
+pub const SCORE_BASE: i32 = 15;
 
 #[derive(PartialEq)]
 pub enum RunState {
@@ -176,6 +177,8 @@ pub struct GameState {
     pub run_state: RunState,
     pub play_time: f32,
     pub combo_time: f32,
+    pub combo: i32,
+    pub score_multiplier: i32,
     pub score: i32,
     pub debug: bool,
 }
@@ -201,6 +204,8 @@ pub fn get_new_game_state() -> GameState {
         lives: MAX_PLAYER_LIVES,
         play_time: 0.0,
         combo_time: 0.0,
+        combo: 0,
+        score_multiplier: 1,
         score: 0,
         debug: false,
     };

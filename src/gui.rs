@@ -13,7 +13,7 @@ use macroquad::{
 };
 
 pub const GUI_BAR_HEIGHT: f32 = 50.0;
-pub const GUI_NUMBER_FONT_SIZE: f32 = 60.0;
+pub const GUI_NUMBER_FONT_SIZE: f32 = 50.0;
 
 pub fn draw(gs: &GameState) {
     draw_rectangle(
@@ -51,7 +51,7 @@ pub fn draw(gs: &GameState) {
         WHITE,
     );
 
-    //draw timer
+    //draw combo timer
     let th = GUI_BAR_HEIGHT * 0.5;
     let tw = screen_width() / 5.0;
     let tx = GUI_BAR_HEIGHT * 1.5;
@@ -67,6 +67,51 @@ pub fn draw(gs: &GameState) {
         vec2(tx + tw - 20.0, ty + th),
         BLACK,
     );
+
+    //draw combo
+    let bg_combo_string = &"00".to_string();
+    let bg_combo_size = measure_text(bg_combo_string, None, GUI_NUMBER_FONT_SIZE as _, 1.0);
+    let combo_string = &gs.combo.to_string();
+    let combo_size = measure_text(combo_string, None, GUI_NUMBER_FONT_SIZE as _, 1.0);
+    let cx = 85.0;
+    let cy = screen_height() - GUI_BAR_HEIGHT / 2.0 - 5.0;
+    draw_text(
+        bg_combo_string,
+        cx - bg_combo_size.width - 10.0,
+        cy + bg_combo_size.height / 2.0,
+        GUI_NUMBER_FONT_SIZE,
+        GRAY,
+    );
+    if gs.combo > 0 {
+        draw_rectangle(
+            cx - combo_size.width - 10.0,
+            cy - combo_size.height / 2.0,
+            combo_size.width,
+            combo_size.height,
+            BLACK,
+        );
+        draw_text(
+            combo_string,
+            cx - combo_size.width - 10.0,
+            cy + combo_size.height / 2.0,
+            GUI_NUMBER_FONT_SIZE,
+            WHITE,
+        );
+    }
+
+    //draw multiplier
+    if gs.score_multiplier > 1 {
+        let multiplier = &format!("{}x", gs.score_multiplier).to_string();
+        let multiplier_size =
+            measure_text(multiplier, None, (GUI_NUMBER_FONT_SIZE - 15.0) as _, 1.0);
+        draw_text(
+            multiplier,
+            tx + tw,
+            screen_height() - GUI_BAR_HEIGHT / 2.0 + multiplier_size.height / 2.0,
+            GUI_NUMBER_FONT_SIZE - 15.0,
+            WHITE,
+        );
+    }
 
     draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, WHITE);
     draw_text(
