@@ -1,3 +1,5 @@
+use crate::components::COMBO_TIMER;
+
 use super::{
     draw_spaceship, GameState, Spaceship, FONT_SIZE, GAME_TIME, MAX_PLAYER_LIVES, PLAYER_HEIGHT,
     PLAYER_WIDTH,
@@ -5,8 +7,8 @@ use super::{
 use macroquad::{
     color_u8,
     prelude::{
-        draw_rectangle, draw_text, measure_text, screen_height, screen_width, vec2, Color, BLACK,
-        GRAY, RED, WHITE,
+        draw_rectangle, draw_text, draw_triangle, measure_text, screen_height, screen_width, vec2,
+        Color, BLACK, GRAY, RED, WHITE,
     },
 };
 
@@ -47,6 +49,23 @@ pub fn draw(gs: &GameState) {
         screen_height() - GUI_BAR_HEIGHT / 2.0 + text_size.height / 2.0,
         GUI_NUMBER_FONT_SIZE,
         WHITE,
+    );
+
+    //draw timer
+    let th = GUI_BAR_HEIGHT * 0.5;
+    let tw = screen_width() / 5.0;
+    let tx = GUI_BAR_HEIGHT * 1.5;
+    let ty = screen_height() - GUI_BAR_HEIGHT / 2.0 - th / 2.0;
+    draw_rectangle(tx, ty, tw, th, GRAY); //bg
+    if gs.combo_time > 0.0 {
+        draw_rectangle(tx, ty, tw * (gs.combo_time / COMBO_TIMER), th, WHITE); //actual timer
+    }
+    draw_triangle(vec2(tx, ty), vec2(tx + 20.0, ty), vec2(tx, ty + th), BLACK);
+    draw_triangle(
+        vec2(tx + tw, ty),
+        vec2(tx + 20.0 + tw, ty + th),
+        vec2(tx + tw - 20.0, ty + th),
+        BLACK,
     );
 
     draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, WHITE);

@@ -17,6 +17,7 @@ fn update(gs: &mut GameState) {
         RunState::Running | RunState::Death => {
             if gs.run_state == RunState::Running {
                 gs.play_time += delta;
+                gs.combo_time -= delta;
             }
 
             gs.player.pos = gs.player.pos + gs.player.vel;
@@ -101,6 +102,7 @@ fn update(gs: &mut GameState) {
 
                     if bullet.collision {
                         gs.score += 1 * ast.size as i32;
+                        gs.combo_time = COMBO_TIMER;
                         ast.collision = true;
                         break;
                     }

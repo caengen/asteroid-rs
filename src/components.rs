@@ -28,13 +28,14 @@ pub const ASTEROID_VEL: f32 = 6.0;
 pub const FRICT: f32 = 0.75;
 pub const ANGLE_STEP: f32 = 4.0;
 
-//time
-pub const BULLET_LIVE_TIME: f64 = 0.75; // in seconds
-pub const TURRET_COOLDOWN: f64 = 0.5; // in seconds
-pub const EXHAUST_COOLDOWN: f64 = 0.175; // in seconds
-pub const EXHAUST_LIVE_TIME: f64 = 2.0; // in seconds
-pub const EXPLOSION_LIVE_TIME: f64 = 0.333; // in seconds
-pub const GAME_TIME: f32 = 100.0; // in seconds
+//time in seconds
+pub const BULLET_LIVE_TIME: f64 = 0.75;
+pub const TURRET_COOLDOWN: f64 = 0.5;
+pub const EXHAUST_COOLDOWN: f64 = 0.175;
+pub const EXHAUST_LIVE_TIME: f64 = 2.0;
+pub const EXPLOSION_LIVE_TIME: f64 = 0.333;
+pub const GAME_TIME: f32 = 100.0;
+pub const COMBO_TIMER: f32 = 4.0;
 
 pub const MAX_PLAYER_LIVES: i32 = 3;
 
@@ -174,6 +175,7 @@ pub struct GameState {
     pub lives: i32,
     pub run_state: RunState,
     pub play_time: f32,
+    pub combo_time: f32,
     pub score: i32,
     pub debug: bool,
 }
@@ -198,6 +200,7 @@ pub fn get_new_game_state() -> GameState {
         exhaust: Vec::new(),
         lives: MAX_PLAYER_LIVES,
         play_time: 0.0,
+        combo_time: 0.0,
         score: 0,
         debug: false,
     };
