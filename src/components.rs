@@ -13,13 +13,15 @@ pub const MAX_PLAYER_LIVES: i32 = 3;
 pub const PLAYER_WIDTH: f32 = 1.0;
 pub const PLAYER_HEIGHT: f32 = 1.0;
 pub const PLAYER_ACCL: f32 = 7.5;
-pub const ANGLE_STEP: f32 = 5.0;
+pub const PLAYER_MAX_VEL: f32 = 25.0;
+pub const ANGLE_STEP: f32 = 4.0;
 pub const BULLET_WIDTH: f32 = 0.1;
 pub const BULLET_VEL: f32 = 600.0;
 pub const BULLET_LIVE_TIME: f64 = 0.75; // in seconds
 pub const TURRET_COOLDOWN: f64 = 0.5; // in seconds
 pub const EXHAUST_COOLDOWN: f64 = 0.175; // in seconds
 pub const EXHAUST_LIVE_TIME: f64 = 2.0; // in seconds
+pub const EXHAUST_VEL: f32 = 150.0;
 pub const EXPLOSION_LIVE_TIME: f64 = 1.0; // in seconds
 pub const GAME_TIME: f32 = 100.0; // in seconds
 

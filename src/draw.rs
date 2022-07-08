@@ -5,7 +5,7 @@ use super::{
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
-    get_fps, get_time, measure_text, screen_height, screen_width, BLACK, GREEN, WHITE,
+    get_fps, get_time, measure_text, screen_height, screen_width, BLACK, GREEN, LIGHTGRAY, WHITE,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {

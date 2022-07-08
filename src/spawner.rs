@@ -1,5 +1,8 @@
-use super::{Asteroid, ASTEROID_VEL, PLAYER_WIDTH};
-use macroquad::prelude::{rand, vec2, Vec2};
+use super::{
+    Asteroid, Exhaust, GameState, ASTEROID_VEL, BULLET_VEL, EXHAUST_COOLDOWN, PLAYER_WIDTH,
+};
+use macroquad::prelude::{get_time, rand, vec2, Vec2};
+use std::ops::Add;
 
 pub fn polygon(origo: Vec2, amount: i32, size: f32) -> Vec<Vec2> {
     let mut points = Vec::new();
@@ -41,4 +44,35 @@ pub fn asteroids(spawn_point: Vec2, r: f32, amount: i32, size: f32, scl: f32) ->
     }
 
     asteroids
+}
+
+pub fn exhaust_particles(gs: &mut GameState, vel: f32, rotation: f32, h: f32) {
+    let time = get_time();
+    if time - gs.player.last_exhaust_frame <= EXHAUST_COOLDOWN {
+        return;
+    }
+
+    let mut factor;
+    let mut s;
+    let mut diff;
+    for _i in 0..3 {
+        factor = rand::gen_range(0.3, 1.0);
+        s = rand::gen_range(0.1, 1.);
+        diff = if rand::gen_range(0, 100) < 50 {
+            vec2(-(rotation.cos() * h / 4.0), -(rotation.sin() * h / 4.0))
+        } else {
+            vec2(rotation.cos() * h / 4.0, rotation.sin() * h / 4.0)
+        };
+        let pos = vec2(
+            gs.player.pos.x - (h / 2.0 + (h / 3.0) * factor) * rotation.sin(),
+            gs.player.pos.y + (h / 2.0 + (h / 3.0) * factor) * rotation.cos(),
+        );
+        gs.exhaust.push(Exhaust {
+            created_at: time,
+            pos: pos.add(diff * factor),
+            size: 0.5 * s,
+            vel: vec2(-(vel * rotation.sin()), vel * rotation.cos()).add(diff),
+        });
+    }
+    gs.player.last_exhaust_frame = time;
 }
