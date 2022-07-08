@@ -113,13 +113,12 @@ pub fn draw(gs: &GameState) {
         );
     }
 
-    draw_text("TIME", screen_width() / 2.0 - 20.0, 20.0, FONT_SIZE, WHITE);
     draw_text(
         &((GAME_TIME - gs.play_time) as i8).to_string(),
         screen_width() / 2.0 - 10.0,
-        35.0,
-        FONT_SIZE + 5.0,
-        WHITE,
+        screen_height() - GUI_BAR_HEIGHT / 2.0 + text_size.height / 2.0,
+        GUI_NUMBER_FONT_SIZE,
+        GRAY,
     );
 
     let mut mock = Spaceship::new(0.0, 0.0, PLAYER_WIDTH / 2., PLAYER_HEIGHT / 2.);

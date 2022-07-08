@@ -1,5 +1,7 @@
 use macroquad::prelude::{screen_height, screen_width, Vec2};
 
+use crate::gui::GUI_BAR_HEIGHT;
+
 pub fn wrap(pos: Vec2, width: f32, height: f32) -> Vec2 {
     let mut new_pos = pos;
     if pos.x > screen_width() {
@@ -8,10 +10,10 @@ pub fn wrap(pos: Vec2, width: f32, height: f32) -> Vec2 {
         new_pos.x = screen_width();
     }
 
-    if new_pos.y > screen_height() {
+    if new_pos.y > screen_height() - GUI_BAR_HEIGHT {
         new_pos.y = 0.0 - height;
     } else if new_pos.y < 0.0 - height {
-        new_pos.y = screen_height();
+        new_pos.y = screen_height() - GUI_BAR_HEIGHT;
     }
 
     new_pos
