@@ -15,6 +15,7 @@ pub fn handle_input(gs: &mut GameState) {
     let rotation = gs.player.angle.to_radians();
     let sh = gs.player.h * gs.scl; // ship height
     let time = get_time();
+    gs.player.strafing = (false, false);
 
     match gs.run_state {
         RunState::Running | RunState::StageComplete => {
@@ -41,15 +42,17 @@ pub fn handle_input(gs: &mut GameState) {
             }
             if is_key_down(KeyCode::Q) {
                 gs.player.vel = vec2(
-                    gs.player.vel.x - (PLAYER_ACCL / 2.0 * delta) * rotation.cos(),
-                    gs.player.vel.y - (PLAYER_ACCL / 2.0 * delta) * rotation.sin(),
+                    gs.player.vel.x - PLAYER_ACCL / 2.0 * delta * rotation.cos(),
+                    gs.player.vel.y - PLAYER_ACCL / 2.0 * delta * rotation.sin(),
                 );
+                gs.player.strafing = (false, true);
             }
             if is_key_down(KeyCode::E) {
                 gs.player.vel = vec2(
                     gs.player.vel.x + PLAYER_ACCL * delta * rotation.cos(),
                     gs.player.vel.y + PLAYER_ACCL * delta * rotation.sin(),
                 );
+                gs.player.strafing = (true, false);
             }
             if is_key_down(KeyCode::Space) && time - gs.player.last_turret_frame > TURRET_COOLDOWN {
                 gs.player.last_turret_frame = time;

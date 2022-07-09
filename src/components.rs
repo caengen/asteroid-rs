@@ -128,6 +128,7 @@ pub struct Spaceship {
     pub pos: Vec2,
     pub angle: f32,
     pub vel: Vec2,
+    pub strafing: (bool, bool),
     pub last_turret_frame: f64,
     pub last_exhaust_frame: f64,
 }
@@ -140,6 +141,7 @@ impl Spaceship {
             pos: vec2(x, y),
             angle: 0.0,
             vel: vec2(0.0, 0.0),
+            strafing: (false, false),
             last_turret_frame: 0.0,
             last_exhaust_frame: 0.0,
         }

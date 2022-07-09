@@ -4,18 +4,51 @@ use super::{
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
-    get_fps, get_time, measure_text, screen_height, screen_width, Color, BLACK, GRAY, GREEN,
+    get_fps, get_time, measure_text, rand, screen_height, screen_width, Color, BLACK, GRAY, GREEN,
     LIGHTGRAY, RED, WHITE,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
-    let Spaceship { pos, vel, .. } = ship;
+    let Spaceship {
+        angle,
+        pos,
+        vel,
+        strafing,
+        ..
+    } = ship;
 
     let p = ship.points(scl);
 
     draw_triangle(p[0], p[1], p[2], WHITE);
     draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 2.0, WHITE);
     draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 2.0, WHITE);
+
+    let (left_strafe, right_strafe) = strafing;
+    let rot = angle.to_radians();
+    let rand_len = rand::gen_range(0.0, ship.w * 0.8);
+    if *left_strafe {
+        let x = pos.x - ship.w / 2.0 * scl * rot.cos();
+        let y = pos.y - ship.w / 2.0 * scl * rot.sin();
+        draw_line(
+            x,
+            y,
+            x - rand_len * scl * rot.cos(),
+            y - rand_len * scl * rot.sin(),
+            1.75,
+            LIGHTGRAY,
+        );
+    } else if *right_strafe {
+        let x = pos.x + ship.w / 2.0 * scl * rot.cos();
+        let y = pos.y + ship.w / 2.0 * scl * rot.sin();
+        draw_line(
+            x,
+            y,
+            x + rand_len * scl * rot.cos(),
+            y + rand_len * scl * rot.sin(),
+            1.75,
+            LIGHTGRAY,
+        );
+    }
 
     if debug {
         draw_line(
