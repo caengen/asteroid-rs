@@ -1,4 +1,4 @@
-use crate::components::COMBO_TIMER;
+use crate::components::{RunState, COMBO_TIMER};
 
 use super::{
     draw_spaceship, GameState, Spaceship, GAME_TIME, MAX_PLAYER_LIVES, PLAYER_HEIGHT, PLAYER_WIDTH,
@@ -20,6 +20,9 @@ pub fn draw(gs: &GameState) {
         BLACK,
     );
 
+    if gs.run_state == RunState::StageComplete {
+        // skriv stage complete
+    }
     // draw score
     let bg_score_string = &"00000".to_string();
     let bg_text_size = measure_text(bg_score_string, None, GUI_NUMBER_FONT_SIZE as _, 1.0);

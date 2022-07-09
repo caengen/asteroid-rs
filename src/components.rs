@@ -48,7 +48,7 @@ pub enum RunState {
     Menu,
     Running,
     Death,
-    GameOver,
+    StageComplete,
 }
 
 pub struct FlyingPoint {

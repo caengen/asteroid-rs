@@ -17,7 +17,7 @@ pub fn handle_input(gs: &mut GameState) {
     let time = get_time();
 
     match gs.run_state {
-        RunState::Running => {
+        RunState::Running | RunState::StageComplete => {
             if is_key_down(KeyCode::Left) || is_key_down(KeyCode::A) {
                 gs.player.angle = (gs.player.angle - ANGLE_STEP) % 360.0;
             }
@@ -39,6 +39,18 @@ pub fn handle_input(gs: &mut GameState) {
                 );
                 exhaust_particles(gs, -EXHAUST_VEL, rotation, -sh / 4.0);
             }
+            if is_key_down(KeyCode::Q) {
+                gs.player.vel = vec2(
+                    gs.player.vel.x - (PLAYER_ACCL * delta) * rotation.cos(),
+                    gs.player.vel.y - (PLAYER_ACCL * delta) * rotation.sin(),
+                );
+            }
+            if is_key_down(KeyCode::E) {
+                gs.player.vel = vec2(
+                    gs.player.vel.x + PLAYER_ACCL * delta * rotation.cos(),
+                    gs.player.vel.y + PLAYER_ACCL * delta * rotation.sin(),
+                );
+            }
             if is_key_down(KeyCode::Space) && time - gs.player.last_turret_frame > TURRET_COOLDOWN {
                 gs.player.last_turret_frame = time;
                 gs.bullets.push(Bullet {
@@ -55,17 +67,19 @@ pub fn handle_input(gs: &mut GameState) {
             if is_key_pressed(KeyCode::G) {
                 gs.debug = !gs.debug;
             }
+
+            if gs.run_state == RunState::StageComplete {
+                if is_key_down(KeyCode::Enter) {
+                    *gs = get_new_game_state();
+                }
+            }
         }
         RunState::Death => {
             if is_key_down(KeyCode::Space) {
                 gs.run_state = RunState::Running;
             }
         }
-        RunState::GameOver => {
-            if is_key_down(KeyCode::Enter) {
-                *gs = get_new_game_state();
-            }
-        }
+
         _ => {}
     }
 }

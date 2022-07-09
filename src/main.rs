@@ -14,7 +14,7 @@ fn update(gs: &mut GameState) {
     let delta = get_frame_time();
     let time = get_time();
     match gs.run_state {
-        RunState::Running | RunState::Death => {
+        RunState::Running | RunState::Death | RunState::StageComplete => {
             if gs.run_state == RunState::Running {
                 gs.play_time += delta;
                 if gs.combo_time > 0.0 {
@@ -69,7 +69,7 @@ fn update(gs: &mut GameState) {
                                 gs.player.reset();
                                 gs.run_state = RunState::Death;
                             } else {
-                                gs.run_state = RunState::GameOver;
+                                gs.run_state = RunState::StageComplete;
                             }
                             break;
                         }
@@ -167,7 +167,7 @@ fn update(gs: &mut GameState) {
                 .retain(|e| time - e.created_at < EXPLOSION_LIVE_TIME);
 
             if gs.asteroids.len() == 0 {
-                gs.run_state = RunState::GameOver;
+                gs.run_state = RunState::StageComplete;
             }
 
             // handle player bounds

@@ -101,7 +101,7 @@ pub fn draw(gs: &GameState) {
     draw_background(gs);
 
     match gs.run_state {
-        RunState::Running | RunState::Death => {
+        RunState::Running | RunState::Death | RunState::StageComplete => {
             draw_spaceship(&gs.player, gs.scl, gs.debug);
 
             for e in gs.explosions.iter() {
@@ -150,7 +150,8 @@ pub fn draw(gs: &GameState) {
                 for i in 0..=(p.len() - 1) {
                     let p1 = p[i];
                     let p2 = p[(i + 1) % p.len()];
-                    draw_triangle(p1, p2, asteroid.pos, Color::from_rgba(49, 47, 40, 0));
+                    // bug: not drawing over star background..
+                    draw_triangle(p1, p2, asteroid.pos, BG_COLOR);
                     draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, WHITE);
                 }
             }
@@ -185,51 +186,51 @@ pub fn draw(gs: &GameState) {
                 draw_debug(gs);
             }
         }
-        RunState::GameOver => {
-            let sw = screen_width();
-            let sh = screen_height();
-            let size = FONT_SIZE * 1.5;
-            let text = "Game over.";
-            let text_size = measure_text(text, None, size as _, 1.0);
-            draw_text(
-                text,
-                sw / 2.0 - text_size.width / 2.0,
-                sh / 4.0,
-                size,
-                WHITE,
-            );
-            draw_text(
-                format!("Life multiplier x{}", gs.lives + 1).as_str(),
-                sw / 2.0 - 60.0,
-                sh / 4.0 + 20.0,
-                FONT_SIZE,
-                WHITE,
-            );
-            let timex = ((GAME_TIME - gs.play_time) / 10.0) as i32;
-            draw_text(
-                format!("Time multiplier x{}", timex as i32).as_str(),
-                sw / 2.0 - 60.0,
-                sh / 4.0 + 40.0,
-                FONT_SIZE,
-                WHITE,
-            );
-            draw_text(
-                format!("Final score: {}", (gs.score * (gs.lives + 1)) * timex).as_str(),
-                sw / 2.0 - 60.0,
-                sh / 4.0 + 60.0,
-                FONT_SIZE,
-                WHITE,
-            );
+        RunState::StageComplete => {
+            // let sw = screen_width();
+            // let sh = screen_height();
+            // let size = FONT_SIZE * 1.5;
+            // let text = "Game over.";
+            // let text_size = measure_text(text, None, size as _, 1.0);
+            // draw_text(
+            //     text,
+            //     sw / 2.0 - text_size.width / 2.0,
+            //     sh / 4.0,
+            //     size,
+            //     WHITE,
+            // );
+            // draw_text(
+            //     format!("Life multiplier x{}", gs.lives + 1).as_str(),
+            //     sw / 2.0 - 60.0,
+            //     sh / 4.0 + 20.0,
+            //     FONT_SIZE,
+            //     WHITE,
+            // );
+            // let timex = ((GAME_TIME - gs.play_time) / 10.0) as i32;
+            // draw_text(
+            //     format!("Time multiplier x{}", timex as i32).as_str(),
+            //     sw / 2.0 - 60.0,
+            //     sh / 4.0 + 40.0,
+            //     FONT_SIZE,
+            //     WHITE,
+            // );
+            // draw_text(
+            //     format!("Final score: {}", (gs.score * (gs.lives + 1)) * timex).as_str(),
+            //     sw / 2.0 - 60.0,
+            //     sh / 4.0 + 60.0,
+            //     FONT_SIZE,
+            //     WHITE,
+            // );
 
-            let text = "Press Enter to restart.";
-            let text_size = measure_text(text, None, FONT_SIZE as _, 1.0);
-            draw_text(
-                text,
-                sw / 2.0 - text_size.width / 2.0,
-                sh / 4.0 + 80.0,
-                FONT_SIZE,
-                WHITE,
-            )
+            // let text = "Press Enter to restart.";
+            // let text_size = measure_text(text, None, FONT_SIZE as _, 1.0);
+            // draw_text(
+            //     text,
+            //     sw / 2.0 - text_size.width / 2.0,
+            //     sh / 4.0 + 80.0,
+            //     FONT_SIZE,
+            //     WHITE,
+            // )
         }
         _ => {}
     }
