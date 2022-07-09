@@ -34,15 +34,15 @@ pub fn handle_input(gs: &mut GameState) {
             }
             if is_key_down(KeyCode::Down) || is_key_down(KeyCode::S) {
                 gs.player.vel = vec2(
-                    gs.player.vel.x - PLAYER_ACCL * delta * rotation.sin(),
-                    gs.player.vel.y + PLAYER_ACCL * delta * rotation.cos(),
+                    gs.player.vel.x - PLAYER_ACCL / 2.0 * delta * rotation.sin(),
+                    gs.player.vel.y + PLAYER_ACCL / 2.0 * delta * rotation.cos(),
                 );
                 exhaust_particles(gs, -EXHAUST_VEL, rotation, -sh / 4.0);
             }
             if is_key_down(KeyCode::Q) {
                 gs.player.vel = vec2(
-                    gs.player.vel.x - (PLAYER_ACCL * delta) * rotation.cos(),
-                    gs.player.vel.y - (PLAYER_ACCL * delta) * rotation.sin(),
+                    gs.player.vel.x - (PLAYER_ACCL / 2.0 * delta) * rotation.cos(),
+                    gs.player.vel.y - (PLAYER_ACCL / 2.0 * delta) * rotation.sin(),
                 );
             }
             if is_key_down(KeyCode::E) {
