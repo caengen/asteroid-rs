@@ -1,5 +1,6 @@
 use super::spawner;
 use macroquad::{
+    audio::Sound,
     color_u8,
     prelude::{const_vec2, get_time, rand, screen_height, screen_width, vec2, Color, Vec2},
 };
@@ -199,6 +200,7 @@ pub struct GameState {
     pub score_multiplier: i32,
     pub score: i32,
     pub debug: bool,
+    pub sounds: Vec<Option<Sound>>,
 }
 
 pub fn get_new_game_state() -> GameState {
@@ -228,6 +230,7 @@ pub fn get_new_game_state() -> GameState {
         scl: scale,
         score: 0,
         score_multiplier: 1,
+        sounds: vec![None; 4],
     };
 
     gs

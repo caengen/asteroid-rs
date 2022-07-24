@@ -1,13 +1,13 @@
 use std::ops::Add;
 
-use crate::{components::PLAYER_WIDTH, spawner::exhaust_particles};
-
 use super::{
-    get_new_game_state, Bullet, Exhaust, GameState, RunState, ANGLE_STEP, BULLET_VEL,
-    EXHAUST_COOLDOWN, EXHAUST_VEL, PLAYER_ACCL, TURRET_COOLDOWN,
+    audio, audio::GameSound, get_new_game_state, spawner, Bullet, Exhaust, GameState, RunState,
+    ANGLE_STEP, BULLET_VEL, EXHAUST_COOLDOWN, EXHAUST_VEL, PLAYER_ACCL, PLAYER_WIDTH,
+    TURRET_COOLDOWN,
 };
-use macroquad::prelude::{
-    get_frame_time, get_time, is_key_down, is_key_pressed, rand, vec2, KeyCode,
+use macroquad::{
+    audio::{play_sound, PlaySoundParams},
+    prelude::{get_frame_time, get_time, is_key_down, is_key_pressed, rand, vec2, KeyCode},
 };
 
 pub fn handle_input(gs: &mut GameState) {
@@ -31,14 +31,14 @@ pub fn handle_input(gs: &mut GameState) {
                     gs.player.vel.x + (PLAYER_ACCL * delta) * rotation.sin(),
                     gs.player.vel.y - (PLAYER_ACCL * delta) * rotation.cos(),
                 );
-                exhaust_particles(gs, EXHAUST_VEL, rotation, sh);
+                spawner::exhaust_particles(gs, EXHAUST_VEL, rotation, sh);
             }
             if is_key_down(KeyCode::Down) || is_key_down(KeyCode::S) {
                 gs.player.vel = vec2(
                     gs.player.vel.x - PLAYER_ACCL / 2.0 * delta * rotation.sin(),
                     gs.player.vel.y + PLAYER_ACCL / 2.0 * delta * rotation.cos(),
                 );
-                exhaust_particles(gs, -EXHAUST_VEL, rotation, -sh / 4.0);
+                spawner::exhaust_particles(gs, -EXHAUST_VEL, rotation, -sh / 4.0);
             }
             if is_key_down(KeyCode::Q) {
                 gs.player.vel = vec2(
@@ -56,6 +56,7 @@ pub fn handle_input(gs: &mut GameState) {
             }
             if is_key_down(KeyCode::Space) && time - gs.player.last_turret_frame > TURRET_COOLDOWN {
                 gs.player.last_turret_frame = time;
+                audio::play_audio(&gs.sounds, GameSound::Shot);
                 gs.bullets.push(Bullet {
                     pos: vec2(
                         gs.player.pos.x + rotation.sin() * sh / 2.,

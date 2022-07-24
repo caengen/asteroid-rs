@@ -1,4 +1,4 @@
-use macroquad::prelude::*;
+use macroquad::{audio::load_sound, prelude::*};
 mod components;
 use components::*;
 mod draw;
@@ -9,6 +9,7 @@ mod spawner;
 use input::*;
 mod utils;
 use utils::*;
+mod audio;
 
 fn update(gs: &mut GameState) {
     let delta = get_frame_time();
@@ -146,6 +147,14 @@ fn update(gs: &mut GameState) {
                         a.w * 0.75,
                         a.size,
                     ));
+
+                    match a.size {
+                        3.0 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionLarge),
+                        2.0 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionMedium),
+                        1.0 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionSmall),
+                        _ => {}
+                    }
+
                     if a.size > 1.0 {
                         new_asteroids.append(&mut spawner::asteroids(
                             a.pos,
@@ -181,6 +190,8 @@ fn update(gs: &mut GameState) {
 async fn main() {
     request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut gs = get_new_game_state();
+
+    audio::load_assets(&mut gs).await;
 
     loop {
         gs.scl = screen_height() / UNITS;

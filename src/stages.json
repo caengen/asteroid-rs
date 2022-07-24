@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Stage 1",
+    "start_pos": [0, 0],
+    "seed": 421337421337,
+    "asteroids": [{
+      "origo": [0, 0], 
+      "radius": 135,
+      "amount": 3,
+      "size": 3,
+      "delay": 0
+    }]
+  },
+  {
+    "name": "Stage 2",
+    "start_pos": [0, 0],
+    "seed": 123456123456,
+    "asteroids": [{
+      "origo": [0, 0], 
+      "radius": 135,
+      "amount": 3,
+      "size": 3,
+      "delay": 0
+    }, {
+      "origo": [-400, -200], 
+      "radius": 20,
+      "amount": 10,
+      "size": 1,
+      "delay": 20
+    }]
+  },
+  {
+    "name": "Stage 3",
+    "start_pos": [0, 0],
+    "seed": 23956239056,
+    "asteroids": [{
+      "origo": [0, 0], 
+      "radius": 100,
+      "amount": 6,
+      "size": 3,
+      "delay": 0
+    }]
+  }
+]
