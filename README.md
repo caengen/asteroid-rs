@@ -1,6 +1,6 @@
-# asteroid-rs
+# asteroids-rs
 
-Asteroid clone in Rust using Macroquad.
+Asteroids in Rust using Macroquad.
 
 [![wasm build](https://github.com/caengen/asteroid-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/caengen/asteroid-rs/actions/workflows/rust.yml)
 
