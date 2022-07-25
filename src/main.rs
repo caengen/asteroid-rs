@@ -65,6 +65,7 @@ fn update(gs: &mut GameState) {
                             }
                         }
                         if player_collision {
+                            audio::play_audio(&gs.sounds, audio::GameSound::Death);
                             gs.lives -= 1;
                             if gs.lives > 0 {
                                 gs.player.reset();
@@ -148,10 +149,10 @@ fn update(gs: &mut GameState) {
                         a.size,
                     ));
 
-                    match a.size {
-                        3.0 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionLarge),
-                        2.0 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionMedium),
-                        1.0 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionSmall),
+                    match a.size as usize {
+                        3 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionLarge),
+                        2 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionMedium),
+                        1 => audio::play_audio(&gs.sounds, audio::GameSound::ExplosionSmall),
                         _ => {}
                     }
 

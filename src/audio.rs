@@ -21,7 +21,7 @@ pub struct GameSoundDictEntry {
 }
 
 pub async fn load_assets(gs: &mut GameState) {
-    let mut files = vec![
+    let files = vec![
         GameSoundDictEntry {
             game_sound: GameSound::Shot,
             filepath: "assets/audio/shot.wav".to_string(),
@@ -37,6 +37,10 @@ pub async fn load_assets(gs: &mut GameState) {
         GameSoundDictEntry {
             game_sound: GameSound::ExplosionSmall,
             filepath: "assets/audio/explosion1.wav".to_string(),
+        },
+        GameSoundDictEntry {
+            game_sound: GameSound::Death,
+            filepath: "assets/audio/death.wav".to_string(),
         },
     ];
 

@@ -230,7 +230,7 @@ pub fn get_new_game_state() -> GameState {
         scl: scale,
         score: 0,
         score_multiplier: 1,
-        sounds: vec![None; 4],
+        sounds: vec![None; 10],
     };
 
     gs
