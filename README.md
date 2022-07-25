@@ -6,7 +6,7 @@ Asteroids in Rust using Macroquad.
 
 Run `cargo run`. 
 
-_Press `G` in-game for debug mode._
+_(Press `G` in-game for debug mode.)_
 
 ![Demo](https://github.com/caengen/asteroid-rs/blob/master/demo/demo.gif)
 
