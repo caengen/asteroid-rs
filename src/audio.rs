@@ -1,39 +1,51 @@
 use super::GameState;
 use macroquad::audio::{set_sound_volume, Sound};
-use macroquad::prelude::state_machine::StateMachine::Ready;
 use macroquad::{
     audio::{load_sound, play_sound, PlaySoundParams},
     prelude::*,
 };
-use std::future::Pending;
 
+#[derive(Clone)]
 pub enum GameSound {
     Shot = 0,
     ExplosionLarge = 1,
     ExplosionMedium = 2,
     ExplosionSmall = 3,
+    Death = 4,
+}
+
+#[derive(Clone)]
+pub struct GameSoundDictEntry {
+    pub game_sound: GameSound,
+    pub filepath: String,
 }
 
 pub async fn load_assets(gs: &mut GameState) {
-    let mut sounds = Vec::new();
-    sounds.push((GameSound::Shot, load_sound("assets/audio/shot.wav").await));
-    sounds.push((
-        GameSound::ExplosionLarge,
-        load_sound("assets/audio/explosion-large.wav").await,
-    ));
-    sounds.push((
-        GameSound::ExplosionMedium,
-        load_sound("assets/audio/explosion-medium.wav").await,
-    ));
-    sounds.push((
-        GameSound::ExplosionSmall,
-        load_sound("assets/audio/explosion-small.wav").await,
-    ));
+    let mut files = vec![
+        GameSoundDictEntry {
+            game_sound: GameSound::Shot,
+            filepath: "assets/audio/shot.wav".to_string(),
+        },
+        GameSoundDictEntry {
+            game_sound: GameSound::ExplosionLarge,
+            filepath: "assets/audio/explosion3.wav".to_string(),
+        },
+        GameSoundDictEntry {
+            game_sound: GameSound::ExplosionMedium,
+            filepath: "assets/audio/explosion2.wav".to_string(),
+        },
+        GameSoundDictEntry {
+            game_sound: GameSound::ExplosionSmall,
+            filepath: "assets/audio/explosion1.wav".to_string(),
+        },
+    ];
 
-    for (sound, res) in sounds {
-        match res {
-            Err(e) => {}
-            Ok(val) => gs.sounds[sound as usize] = Some(val),
+    for file in files.iter() {
+        let s = load_sound(file.filepath.as_str()).await;
+        let i = file.clone().game_sound as usize; // clone fixes shared ref error...
+        match s {
+            Err(e) => gs.sounds[i] = None,
+            Ok(val) => gs.sounds[i] = Some(val),
         }
     }
 }
