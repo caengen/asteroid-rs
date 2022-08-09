@@ -9,7 +9,8 @@ use macroquad::{
 pub const UNITS: f32 = 16.0;
 
 //colors
-pub const BG_COLOR: Color = color_u8!(49, 47, 40, 1);
+pub const DARK: Color = color_u8!(49, 47, 40, 255);
+pub const LIGHT: Color = color_u8!(218, 216, 209, 255);
 
 //dimensions
 pub const POINT_FONT_SIZE: f32 = 40.0;
@@ -46,7 +47,6 @@ pub const SCORE_BASE: i32 = 16;
 
 #[derive(PartialEq)]
 pub enum RunState {
-    Menu,
     Running,
     Death,
     StageComplete,

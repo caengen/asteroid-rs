@@ -1,11 +1,11 @@
 use super::{
-    gui, GameState, RunState, Spaceship, ASTEROID_MAX_SIZE, BG_COLOR, BULLET_WIDTH,
-    EXPLOSION_LIVE_TIME, FONT_SIZE, GAME_TIME, PLAYER_HEIGHT, POINT_FONT_SIZE,
+    gui, GameState, RunState, Spaceship, ASTEROID_MAX_SIZE, BULLET_WIDTH, DARK,
+    EXPLOSION_LIVE_TIME, FONT_SIZE, GAME_TIME, LIGHT, PLAYER_HEIGHT, POINT_FONT_SIZE,
 };
 use macroquad::prelude::{
     clear_background, draw_circle, draw_line, draw_rectangle_lines, draw_text, draw_triangle,
     get_fps, get_time, measure_text, rand, screen_height, screen_width, Color, BLACK, GRAY, GREEN,
-    LIGHTGRAY, RED, WHITE,
+    LIGHTGRAY, RED,
 };
 
 pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
@@ -19,9 +19,9 @@ pub fn draw_spaceship(ship: &Spaceship, scl: f32, debug: bool) {
 
     let p = ship.points(scl);
 
-    draw_triangle(p[0], p[1], p[2], WHITE);
-    draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 2.0, WHITE);
-    draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 2.0, WHITE);
+    draw_triangle(p[0], p[1], p[2], LIGHT);
+    draw_line(p[1].x, p[1].y, p[3].x, p[3].y, 2.0, LIGHT);
+    draw_line(p[2].x, p[2].y, p[4].x, p[4].y, 2.0, LIGHT);
 
     let (left_strafe, right_strafe) = strafing;
     let rot = angle.to_radians();
@@ -83,54 +83,54 @@ fn draw_debug(gs: &GameState) {
         10.0,
         50.0,
         FONT_SIZE - 5.0,
-        WHITE,
+        LIGHT,
     );
     draw_text(
         &format!("Vel: {}", gs.player.vel.to_string()),
         10.0,
         60.0,
         FONT_SIZE - 5.0,
-        WHITE,
+        LIGHT,
     );
     draw_text(
         &format!("Angle: {}", gs.player.angle.to_string()),
         10.0,
         70.0,
         FONT_SIZE - 5.0,
-        WHITE,
+        LIGHT,
     );
     draw_text(
         &format!("W:{}, H:{}", screen_width(), screen_height()),
         10.0,
         80.0,
         FONT_SIZE - 5.0,
-        WHITE,
+        LIGHT,
     );
     draw_text(
         &format!("Player lives: {}", gs.lives),
         10.0,
         90.0,
         FONT_SIZE - 5.0,
-        WHITE,
+        LIGHT,
     );
     draw_text(
         &format!("Asteroid count: {}", gs.asteroids.len()),
         10.0,
         100.0,
         FONT_SIZE - 5.0,
-        WHITE,
+        LIGHT,
     );
     draw_text(
         &format!("Exhaust count: {}", gs.exhaust.len()),
         10.0,
         110.0,
         FONT_SIZE - 5.0,
-        WHITE,
+        LIGHT,
     );
 }
 
 pub fn draw(gs: &GameState) {
-    clear_background(BG_COLOR);
+    clear_background(DARK);
     draw_background(gs);
 
     match gs.run_state {
@@ -146,7 +146,7 @@ pub fn draw(gs: &GameState) {
                     e.width,
                     thickness
                         - thickness * ((get_time() - e.created_at) / EXPLOSION_LIVE_TIME) as f32,
-                    WHITE,
+                    LIGHT,
                 );
             }
 
@@ -155,7 +155,7 @@ pub fn draw(gs: &GameState) {
                     bullet.pos.x,
                     bullet.pos.y,
                     BULLET_WIDTH / 2.0 * gs.scl,
-                    WHITE,
+                    LIGHT,
                 )
             }
 
@@ -166,7 +166,7 @@ pub fn draw(gs: &GameState) {
                     ex.pos.x + (ex.size / 2.0) * gs.scl,
                     ex.pos.y,
                     2.0,
-                    WHITE,
+                    LIGHT,
                 );
                 draw_line(
                     ex.pos.x,
@@ -174,7 +174,7 @@ pub fn draw(gs: &GameState) {
                     ex.pos.x,
                     ex.pos.y + (ex.size / 2.0) * gs.scl,
                     2.0,
-                    WHITE,
+                    LIGHT,
                 );
             }
 
@@ -184,8 +184,8 @@ pub fn draw(gs: &GameState) {
                     let p1 = p[i];
                     let p2 = p[(i + 1) % p.len()];
                     // bug: not drawing over star background..
-                    draw_triangle(p1, p2, asteroid.pos, BG_COLOR);
-                    draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, WHITE);
+                    draw_triangle(p1, p2, asteroid.pos, DARK);
+                    draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, LIGHT);
                 }
             }
 
@@ -197,7 +197,7 @@ pub fn draw(gs: &GameState) {
                     point.pos.x - text_measure.width / 2.0,
                     point.pos.y - text_measure.height / 2.0,
                     POINT_FONT_SIZE,
-                    WHITE,
+                    LIGHT,
                 );
             }
 
@@ -211,7 +211,7 @@ pub fn draw(gs: &GameState) {
                     screen_width() / 2.0 - text_size.width / 2.0,
                     screen_height() / 2.0 + PLAYER_HEIGHT * 2.0 * gs.scl,
                     FONT_SIZE,
-                    WHITE,
+                    LIGHT,
                 );
             }
 
@@ -230,14 +230,14 @@ pub fn draw(gs: &GameState) {
             //     sw / 2.0 - text_size.width / 2.0,
             //     sh / 4.0,
             //     size,
-            //     WHITE,
+            //     LIGHT,
             // );
             // draw_text(
             //     format!("Life multiplier x{}", gs.lives + 1).as_str(),
             //     sw / 2.0 - 60.0,
             //     sh / 4.0 + 20.0,
             //     FONT_SIZE,
-            //     WHITE,
+            //     LIGHT,
             // );
             // let timex = ((GAME_TIME - gs.play_time) / 10.0) as i32;
             // draw_text(
@@ -245,14 +245,14 @@ pub fn draw(gs: &GameState) {
             //     sw / 2.0 - 60.0,
             //     sh / 4.0 + 40.0,
             //     FONT_SIZE,
-            //     WHITE,
+            //     LIGHT,
             // );
             // draw_text(
             //     format!("Final score: {}", (gs.score * (gs.lives + 1)) * timex).as_str(),
             //     sw / 2.0 - 60.0,
             //     sh / 4.0 + 60.0,
             //     FONT_SIZE,
-            //     WHITE,
+            //     LIGHT,
             // );
 
             // let text = "Press Enter to restart.";
@@ -262,7 +262,7 @@ pub fn draw(gs: &GameState) {
             //     sw / 2.0 - text_size.width / 2.0,
             //     sh / 4.0 + 80.0,
             //     FONT_SIZE,
-            //     WHITE,
+            //     LIGHT,
             // )
         }
         _ => {}

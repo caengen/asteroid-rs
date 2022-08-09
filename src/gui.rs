@@ -1,11 +1,11 @@
 use crate::components::{RunState, COMBO_TIMER};
 
 use super::{
-    draw_spaceship, GameState, Spaceship, GAME_TIME, MAX_PLAYER_LIVES, PLAYER_HEIGHT, PLAYER_WIDTH,
+    draw_spaceship, GameState, Spaceship, DARK, GAME_TIME, LIGHT, MAX_PLAYER_LIVES, PLAYER_HEIGHT,
+    PLAYER_WIDTH,
 };
 use macroquad::prelude::{
-    draw_rectangle, draw_text, draw_triangle, measure_text, screen_height, screen_width, vec2,
-    BLACK, GRAY, WHITE,
+    draw_rectangle, draw_text, draw_triangle, measure_text, screen_height, screen_width, vec2, GRAY,
 };
 
 pub const GUI_BAR_HEIGHT: f32 = 50.0;
@@ -17,7 +17,7 @@ pub fn draw(gs: &GameState) {
         screen_height() - GUI_BAR_HEIGHT,
         screen_width(),
         GUI_BAR_HEIGHT,
-        BLACK,
+        DARK,
     );
 
     if gs.run_state == RunState::StageComplete {
@@ -40,14 +40,14 @@ pub fn draw(gs: &GameState) {
         screen_height() - GUI_BAR_HEIGHT,
         text_size.width,
         GUI_BAR_HEIGHT,
-        BLACK,
+        DARK,
     );
     draw_text(
         &score_string,
         screen_width() - text_size.width - 10.0,
         screen_height() - GUI_BAR_HEIGHT / 2.0 + text_size.height / 2.0,
         GUI_NUMBER_FONT_SIZE,
-        WHITE,
+        LIGHT,
     );
 
     //draw combo timer
@@ -57,14 +57,14 @@ pub fn draw(gs: &GameState) {
     let ty = screen_height() - GUI_BAR_HEIGHT / 2.0 - th / 2.0;
     draw_rectangle(tx, ty, tw, th, GRAY); //bg
     if gs.combo_time > 0.0 {
-        draw_rectangle(tx, ty, tw * (gs.combo_time / COMBO_TIMER), th, WHITE); //actual timer
+        draw_rectangle(tx, ty, tw * (gs.combo_time / COMBO_TIMER), th, LIGHT); //actual timer
     }
-    draw_triangle(vec2(tx, ty), vec2(tx + 20.0, ty), vec2(tx, ty + th), BLACK);
+    draw_triangle(vec2(tx, ty), vec2(tx + 20.0, ty), vec2(tx, ty + th), DARK);
     draw_triangle(
         vec2(tx + tw, ty),
         vec2(tx + 20.0 + tw, ty + th),
         vec2(tx + tw - 20.0, ty + th),
-        BLACK,
+        DARK,
     );
 
     //draw combo
@@ -87,14 +87,14 @@ pub fn draw(gs: &GameState) {
             cy - combo_size.height / 2.0,
             combo_size.width,
             combo_size.height,
-            BLACK,
+            DARK,
         );
         draw_text(
             combo_string,
             cx - combo_size.width - 10.0,
             cy + combo_size.height / 2.0,
             GUI_NUMBER_FONT_SIZE,
-            WHITE,
+            LIGHT,
         );
     }
 
@@ -108,7 +108,7 @@ pub fn draw(gs: &GameState) {
             tx + tw,
             screen_height() - GUI_BAR_HEIGHT / 2.0 + multiplier_size.height / 2.0,
             GUI_NUMBER_FONT_SIZE - 15.0,
-            WHITE,
+            LIGHT,
         );
     }
 
