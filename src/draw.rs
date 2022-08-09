@@ -137,19 +137,6 @@ pub fn draw(gs: &GameState) {
         RunState::Running | RunState::Death | RunState::StageComplete => {
             draw_spaceship(&gs.player, gs.scl, gs.debug);
 
-            for e in gs.explosions.iter() {
-                let thickness = 150.0 * e.size / ASTEROID_MAX_SIZE;
-                draw_rectangle_lines(
-                    e.pos.x,
-                    e.pos.y,
-                    e.width,
-                    e.width,
-                    thickness
-                        - thickness * ((get_time() - e.created_at) / EXPLOSION_LIVE_TIME) as f32,
-                    LIGHT,
-                );
-            }
-
             for bullet in gs.bullets.iter() {
                 draw_circle(
                     bullet.pos.x,
@@ -187,6 +174,19 @@ pub fn draw(gs: &GameState) {
                     draw_triangle(p1, p2, asteroid.pos, DARK);
                     draw_line(p1.x, p1.y, p2.x, p2.y, 2.0, LIGHT);
                 }
+            }
+
+            for e in gs.explosions.iter() {
+                let thickness = 150.0 * e.size / ASTEROID_MAX_SIZE;
+                draw_rectangle_lines(
+                    e.pos.x,
+                    e.pos.y,
+                    e.width,
+                    e.width,
+                    thickness
+                        - thickness * ((get_time() - e.created_at) / EXPLOSION_LIVE_TIME) as f32,
+                    LIGHT,
+                );
             }
 
             for point in gs.flying_points.iter() {
