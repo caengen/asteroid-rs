@@ -20,7 +20,7 @@ jobs:
       - name: Build
         run: cargo build --release --target wasm32-unknown-unknown
       - name: Copy wasm
-        run: cp "./target/wasm32-unknown-unknown/debug/asteroids-rs.wasm" "./bin/asteroids-rs.wasm"
+        run: cp "./target/wasm32-unknown-unknown/release/asteroids-rs.wasm" "./bin/asteroids-rs.wasm"
       - name: Commit wasm
         uses: EndBug/add-and-commit@v9
         with:
